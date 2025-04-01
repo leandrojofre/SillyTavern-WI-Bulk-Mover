@@ -10,7 +10,6 @@ const extensionName = "SillyTavern-WI-Bulk-Mover";
 const extensionFolderPath = `scripts/extensions/third-party/${extensionName}`;
 const extensionSettings = extension_settings[extensionName];
 const defaultSettings = {
-    enabled: true,
     debug: false
 };
 
@@ -19,7 +18,7 @@ const context = SillyTavern.getContext();
 // * Debugs methods
 
 const log = (...msg) => {
-    if (!extensionSettings.enabled || !extensionSettings.debug) return;
+    if (!extensionSettings.debug) return;
     console.log("[" + extensionName + "]", ...msg);
 };
 
@@ -193,8 +192,8 @@ eventSource.on(event_types.WORLDINFO_UPDATED, function(...args) {
 // * Methods in charge of controlling the extension settings
 
 const settingsCallbacks = {
-    /**	Triggers on enabled setting change. */
-    enabled: () => {
+    /**	Triggers on debug setting change. */
+    debug: () => {
         // Nothing by the moment
     }
 }
@@ -216,7 +215,6 @@ function settingsBooleanButton(event) {
 
 /**	Logs setting's values. */
 function displaySettings() {
-    console.debug("[" + extensionName + "]", `The extension is ${extensionSettings.enabled ? "active" : "not active"}`);
     console.debug("[" + extensionName + "]", `Debug mode is ${extensionSettings.debug ? "active" : "not active"}`);
     console.debug("[" + extensionName + "]", structuredClone(extensionSettings));
 }
@@ -228,7 +226,6 @@ async function loadHTMLSettings() {
     $("#extensions_settings").append(settingsHtml);
 
     // Event Listeners for the extension HTML
-    $("#wibm-activate-extension").on("input", settingsBooleanButton);
     $("#wibm-activate-debug").on("input", settingsBooleanButton);
     $("#wibm-check-configuration").on("click", displaySettings);
 
@@ -237,7 +234,6 @@ async function loadHTMLSettings() {
 
 /** Init setting values on the menu */
 function setSettings() {
-    $("#wibm-activate-extension").prop("checked", extensionSettings.enabled).trigger("input");
     $("#wibm-activate-debug").prop("checked", extensionSettings.debug).trigger("input");
 
     log("setSettings", extensionSettings);
