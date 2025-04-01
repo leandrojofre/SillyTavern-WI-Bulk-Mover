@@ -1,0 +1,5 @@
+{
+	"scripts": {
+		"release": "standard-version --release-as"
+	}
+}
