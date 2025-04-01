@@ -1,12 +1,12 @@
 {
-    "display_name": "EXTENSION_NAME",
+    "display_name": "WI Bulk Mover",
     "loading_order": 200,
     "requires": [],
     "optional": [],
     "js": "index.js",
     "css": "style.css",
-    "author": "AUTHOR_NAME",
-    "version": "0.0.0",
-    "homePage": "https://github.com/leandrojofre/SillyTavern-Extension-Template.git",
+    "author": "Leandro Jofre",
+    "version": "0.0.1",
+    "homePage": "https://github.com/leandrojofre/SillyTavern-WI-Bulk-Mover.git",
     "auto_update": true
 }

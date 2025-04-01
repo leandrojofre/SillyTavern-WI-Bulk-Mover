@@ -1,11 +1,11 @@
-# SillyTavern - EXTENSION_NAME
+# SillyTavern - WI Bulk Mover
 This is a simple extension that adds... that allows you to...
 ## Features
 - It will...
 ### Coming Soon
 - ...
 ## Installation
-Install the extension using this link: ```https://github.com/leandrojofre/SillyTavern-EXTENSION_NAME.git```
+Install the extension using this link: ```https://github.com/leandrojofre/SillyTavern-WI-Bulk-Mover.git```
 ### Usage
 This extension is intended to be used...
 ### Compatibility

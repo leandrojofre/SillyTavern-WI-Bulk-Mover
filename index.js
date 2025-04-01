@@ -4,7 +4,7 @@ import {getLocalVariable, getGlobalVariable} from "../../../variables.js";
 
 // * Extension variables
 
-const extensionName = "SillyTavern-Extension-Template";
+const extensionName = "SillyTavern-WI-Bulk-Mover";
 const extensionFolderPath = `scripts/extensions/third-party/${extensionName}`;
 const extensionSettings = extension_settings[extensionName];
 const defaultSettings = {
@@ -38,7 +38,7 @@ const settingsCallbacks = {
 function settingsBooleanButton(event) {
     const target = event.target;
     const value = Boolean($(target).prop("checked"));
-    const setting = target.getAttribute("EXTENSION_NAME-setting");
+    const setting = target.getAttribute("wibm-setting");
     const callback = settingsCallbacks[setting];
 
     extensionSettings[setting] = value;
@@ -63,17 +63,17 @@ async function loadHTMLSettings() {
     $("#extensions_settings").append(settingsHtml);
 
     // Event Listeners for the extension HTML
-    $("#EXTENSION_NAME-activate-extension").on("input", settingsBooleanButton);
-    $("#EXTENSION_NAME-activate-debug").on("input", settingsBooleanButton);
-    $("#EXTENSION_NAME-check-configuration").on("click", displaySettings);
+    $("#wibm-activate-extension").on("input", settingsBooleanButton);
+    $("#wibm-activate-debug").on("input", settingsBooleanButton);
+    $("#wibm-check-configuration").on("click", displaySettings);
 
     log("loadHTMLSettings");
 }
 
 /** Init setting values on the menu */
 function setSettings() {
-    $("#EXTENSION_NAME-activate-extension").prop("checked", extensionSettings.enabled).trigger("input");
-    $("#EXTENSION_NAME-activate-debug").prop("checked", extensionSettings.debug).trigger("input");
+    $("#wibm-activate-extension").prop("checked", extensionSettings.enabled).trigger("input");
+    $("#wibm-activate-debug").prop("checked", extensionSettings.debug).trigger("input");
 
     log("setSettings", extensionSettings);
 }

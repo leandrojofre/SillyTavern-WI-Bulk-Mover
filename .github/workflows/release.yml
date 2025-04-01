@@ -71,7 +71,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.determine_version.outputs.new_version }}
-          release_name: SillyTavern-Extension-Template v${{ steps.determine_version.outputs.new_version }}
+          release_name: SillyTavern-WI-Bulk-Mover v${{ steps.determine_version.outputs.new_version }}
           body: |
            - **PR Title**: ${{ steps.pr_details.outputs.title }}
            - **Merged by**: @${{ steps.pr_details.outputs.user }}

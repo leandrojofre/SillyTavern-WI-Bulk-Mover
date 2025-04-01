@@ -1,16 +1,16 @@
-#EXTENSION_NAME-settings-window div.flex-container.flex-column,
-#EXTENSION_NAME-settings-window label.flex-container.flex-column {
+#wibm-settings-window div.flex-container.flex-column,
+#wibm-settings-window label.flex-container.flex-column {
 	flex-direction: column;
 	align-items: normal;
 }
 
-#EXTENSION_NAME-settings-window div.flex-container,
-#EXTENSION_NAME-settings-window label.flex-container {
+#wibm-settings-window div.flex-container,
+#wibm-settings-window label.flex-container {
 	align-items: center;
 	flex-wrap: nowrap;
 }
 
-#EXTENSION_NAME-settings-window  .separator-bottom {
+#wibm-settings-window  .separator-bottom {
 	border-bottom: 1px solid #2a2a2a;
 	padding-bottom: 1vh;
 	margin-bottom: 1vh;

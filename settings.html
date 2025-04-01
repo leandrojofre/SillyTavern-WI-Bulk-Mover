@@ -4,16 +4,16 @@ You might want to add additional HTML elements to ST. It's good practice to sepa
 <div class="example-extension-settings">
 	<div class="inline-drawer">
 		<div class="inline-drawer-toggle inline-drawer-header">
-			<b>EXTENSION_NAME</b>
+			<b>WI Bulk Mover</b>
 			<div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
 		</div>
-		<div id="EXTENSION_NAME-settings-window" class="inline-drawer-content" style="padding: 0.5vh;">
+		<div id="wibm-settings-window" class="inline-drawer-content" style="padding: 0.5vh;">
 
 			<div class="flex-container flex-column separator-bottom">
 				<b>Settings</b>
 
 				<label class="flex-container">
-					<input id="EXTENSION_NAME-activate-extension" EXTENSION_NAME-setting="enabled" type="checkbox" />
+					<input id="wibm-activate-extension" wibm-setting="enabled" type="checkbox" />
 					Enable/Disable the extension
 				</label>
 			</div>
@@ -22,12 +22,12 @@ You might want to add additional HTML elements to ST. It's good practice to sepa
 				<b>Debug settings</b>
 
 				<div class="flex-container">
-					<input id="EXTENSION_NAME-check-configuration" class="menu_button" type="button" value="Check Configuration" />
+					<input id="wibm-check-configuration" class="menu_button" type="button" value="Check Configuration" />
 					Print the configuration values ​​through the console
 				</div>
 
 				<label class="flex-container">
-					<input id="EXTENSION_NAME-activate-debug" EXTENSION_NAME-setting="debug" type="checkbox" />
+					<input id="wibm-activate-debug" wibm-setting="debug" type="checkbox" />
 					Enable/Disable the debug console logs
 				</label>
 			</div>
