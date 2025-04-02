@@ -99,6 +99,7 @@ async function bulkMoveWIEntries(sourceName, targetName, sourceEntries) {
     }
 }
 
+/** Adds extension buttons and their listeners. */
 function initFeatures() {
     $('#world_apply_current_sorting').after(`
         <div id="wibm_bulk_move_wi_entries" class="menu_button fa-solid fa-boxes-packing interactable" title="Copy all entries into another lorebook" data-i18n="[title]Copy all entries into another lorebook" tabindex="0"></div>
@@ -113,6 +114,7 @@ function initFeatures() {
         // @ts-ignore
         if (sourceWorld === "undefined" || !world_names.includes(sourceWorld)) return toastr.error(t`Lorebook was not selected or is still loading`);
 
+        /** Create popup buttons. */
         const WISourceDefaultOption = document.createElement("option");
         WISourceDefaultOption.value = "";
         WISourceDefaultOption.textContent = `-- ${t`Select Target Lorebook`} --`;
@@ -131,6 +133,7 @@ function initFeatures() {
         selectSourceEntries.style.display = "none";
         selectSourceEntries.setAttribute("multiple", "multiple");
 
+        /** Give WI selector options. */
         let selectableWorldCount = 0;
         world_names.forEach(worldName => {
             if (worldName === sourceWorld) return;
@@ -148,6 +151,7 @@ function initFeatures() {
             return;
         }
 
+        /** Create popup container and title. */
         const wrapper = document.createElement("div");
         const container = document.createElement("div");
 
@@ -162,9 +166,11 @@ function initFeatures() {
         selectWISource.addEventListener("change", async function() {
             selectedWorldIndex = this.value === "" ? -1 : Number(this.value);
 
+            /** Init WI entries selector. */
             if (selectSourceEntries.style.display === "none")
                 $('#wibm_bulk_move_wi_select_entries').show();
 
+            /** Give WI entries selector options. */
             const data = [];
 
             for (const key in sourceWorldEntries) {
@@ -237,6 +243,7 @@ function initFeatures() {
             return;
         }
 
+        /** Filter selected entries to copy. */
         let filteredEntries = {};
 
         log(selectedWorldEntries, !selectedWorldEntries.includes("-1"), sourceWorldEntries)
