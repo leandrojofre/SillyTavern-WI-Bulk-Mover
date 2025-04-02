@@ -28,6 +28,7 @@ const log = (...msg) => {
  * Moves a World Info entry from a source lorebook to a target lorebook.
  * @param {string} sourceName - The name of the source lorebook file.
  * @param {string} targetName - The name of the target lorebook file.
+ * @param {Array} sourceEntries - The entries of the source lorebook file.
  * @returns {Promise<boolean>} True if the move was successful, false otherwise.
  */
 async function bulkMoveWIEntries(sourceName, targetName, sourceEntries) {
@@ -52,10 +53,11 @@ async function bulkMoveWIEntries(sourceName, targetName, sourceEntries) {
 
         log("SOURCE:", sourceEntries, "TARGET:", targetData);
 
-        const entryToMove = structuredClone(sourceEntries);
+        let maxDisplayIndex = Object
+            .values(targetData.entries)
+            .reduce((max, entry) => Math.max(max, entry.displayIndex ?? -1), -1);
 
-        for (const key in entryToMove) {
-            const entry = entryToMove[key];
+        for (const entry of sourceEntries) {
             const newUid = getFreeWorldEntryUid(targetData);
 
             if (newUid === null) {
@@ -63,10 +65,9 @@ async function bulkMoveWIEntries(sourceName, targetName, sourceEntries) {
                 return false;
             }
 
-            const maxDisplayIndex = Object.values(targetData.entries).reduce((max, entry) => Math.max(max, entry.displayIndex ?? -1), -1);
-
+            maxDisplayIndex++
             entry.uid = newUid;
-            entry.displayIndex = maxDisplayIndex + 1;
+            entry.displayIndex = maxDisplayIndex;
             targetData.entries[newUid] = entry;
 
             log(`Copied entry from source '${sourceName}':`, entry);
@@ -244,16 +245,17 @@ function initFeatures() {
         }
 
         /** Filter selected entries to copy. */
-        let filteredEntries = {};
+        let filteredEntries = [];
+        const sortedSourceWorldEntries = Object
+            .values(sourceWorldEntries)
+            .sort((a, b) => a.displayIndex - b.displayIndex);
 
-        log(selectedWorldEntries, !selectedWorldEntries.includes("-1"), sourceWorldEntries)
+        log(selectedWorldEntries, !selectedWorldEntries.includes("-1"), sourceWorldEntries, sortedSourceWorldEntries);
 
         if (!selectedWorldEntries.includes("-1")) {
             for (const key of selectedWorldEntries)
-                filteredEntries[key] = Object
-                    .values(sourceWorldEntries)
-                    .find((entry) => entry.uid === Number(key));
-        } else filteredEntries = structuredClone(sourceWorldEntries);
+                filteredEntries.push(sortedSourceWorldEntries.find((entry) => entry.uid === Number(key)));
+        } else filteredEntries = [...sortedSourceWorldEntries];
 
         log("filteredEntries =", filteredEntries);
 
