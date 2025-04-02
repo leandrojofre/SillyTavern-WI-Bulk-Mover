@@ -1,6 +1,6 @@
 import {extension_settings} from "../../../extensions.js";
 import {saveSettingsDebounced, event_types, eventSource} from "../../../../script.js";
-import { getFreeWorldEntryUid, loadWorldInfo, reloadEditor, saveWorldInfo, world_names } from "../../../world-info.js";
+import { getFreeWorldEntryUid, loadWorldInfo, reloadEditor, saveWorldInfo, world_names, moveWorldInfoEntry } from "../../../world-info.js";
 import { t } from "../../../i18n.js";
 import { callGenericPopup, POPUP_TYPE } from "../../../popup.js";
 
@@ -25,13 +25,13 @@ const log = (...msg) => {
 // * Extension methods
 
 /**
- * Moves a World Info entry from a source lorebook to a target lorebook.
+ * Clones a World Info entry from a source lorebook to a target lorebook.
  * @param {string} sourceName - The name of the source lorebook file.
  * @param {string} targetName - The name of the target lorebook file.
  * @param {Array} sourceEntries - The entries of the source lorebook file.
  * @returns {Promise<boolean>} True if the move was successful, false otherwise.
  */
-async function bulkMoveWIEntries(sourceName, targetName, sourceEntries) {
+async function bulkCloneWIEntries(sourceName, targetName, sourceEntries) {
     if (sourceName === targetName) return false;
 
     if (!world_names.includes(targetName)) {
@@ -100,6 +100,35 @@ async function bulkMoveWIEntries(sourceName, targetName, sourceEntries) {
     }
 }
 
+/**
+ * Transfers a World Info entry from a source lorebook to a target lorebook.
+ * @param {string} sourceName - The name of the source lorebook file.
+ * @param {string} targetName - The name of the target lorebook file.
+ * @param {Array} sourceEntries - The entries of the source lorebook file.
+ * @returns {Promise<boolean>} True if the move was successful, false otherwise.
+ */
+async function bulkTransferWIEntries(sourceName, targetName, sourceEntries) {
+    try {
+        for (const entry of sourceEntries) {
+            const moved = await moveWorldInfoEntry(sourceName, targetName, entry.uid);
+
+            if (!moved) throw new Error(`Failed to move entry with uid ${entry.uid}`);
+        }
+
+        // @ts-ignore
+        toastr.success(t`Selected entries transferred from "${sourceName}" into "${targetName}"`);
+
+        return true;
+    } catch (error) {
+
+        // @ts-ignore
+        toastr.error(t`Unexpected error: ${error.message}`);
+        log('Unexpected error:', error);
+
+        return false;
+    }
+}
+
 /** Adds extension buttons and their listeners. */
 function initFeatures() {
     $('#world_apply_current_sorting').after(`
@@ -125,8 +154,7 @@ function initFeatures() {
         selectWISource.classList.add("text_pole", "wide100p", "marginTop10");
         selectWISource.appendChild(WISourceDefaultOption);
 
-        const sourceEntriesDefaulOption =  {id: -1, text: "All"}
-
+        const sourceEntriesDefaulOption =  {id: -1, text: "All"};
         const selectSourceEntries =  document.createElement("select");
         selectSourceEntries.id = "wibm_bulk_move_wi_select_entries";
         selectSourceEntries.classList.add("wide100p", "marginTop20", "select2_multi_sameline", "select2_choice_clickable", "select2_choice_clickable_buttonstyle");
@@ -230,7 +258,10 @@ function initFeatures() {
         const popupConfirm = await callGenericPopup(container, POPUP_TYPE.CONFIRM, "", {
             okButton: t`Copy`,
             cancelButton: t`Cancel`,
+            customButtons: [t`Transfer`],
         });
+
+        log("popupConfirm = ", popupConfirm);
 
         if (!popupConfirm) return;
         if (selectedWorldIndex === -1) return;
@@ -259,7 +290,11 @@ function initFeatures() {
 
         log("filteredEntries =", filteredEntries);
 
-        await bulkMoveWIEntries(sourceWorld, selectedValue, filteredEntries);
+        if (popupConfirm === 1)
+            await bulkCloneWIEntries(sourceWorld, selectedValue, filteredEntries);
+
+        if (popupConfirm === 2)
+            await bulkTransferWIEntries(sourceWorld, selectedValue, filteredEntries);
     });
 }
 
