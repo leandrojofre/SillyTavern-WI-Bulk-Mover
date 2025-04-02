@@ -246,16 +246,16 @@ function initFeatures() {
 
         /** Filter selected entries to copy. */
         let filteredEntries = [];
-        const sortedSourceWorldEntries = Object
-            .values(sourceWorldEntries)
-            .sort((a, b) => a.displayIndex - b.displayIndex);
+        const arraySourceWorldEntries = Object.values(sourceWorldEntries)
 
-        log(selectedWorldEntries, !selectedWorldEntries.includes("-1"), sourceWorldEntries, sortedSourceWorldEntries);
+        log(selectedWorldEntries, !selectedWorldEntries.includes("-1"), sourceWorldEntries, arraySourceWorldEntries);
 
         if (!selectedWorldEntries.includes("-1")) {
             for (const key of selectedWorldEntries)
-                filteredEntries.push(sortedSourceWorldEntries.find((entry) => entry.uid === Number(key)));
-        } else filteredEntries = [...sortedSourceWorldEntries];
+                filteredEntries.push(arraySourceWorldEntries.find((entry) => entry.uid === Number(key)));
+        } else filteredEntries = [...arraySourceWorldEntries];
+
+        filteredEntries = filteredEntries.sort((a, b) => a.displayIndex - b.displayIndex);
 
         log("filteredEntries =", filteredEntries);
 
