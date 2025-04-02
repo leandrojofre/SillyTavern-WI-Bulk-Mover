@@ -2,7 +2,7 @@ import {extension_settings} from "../../../extensions.js";
 import {saveSettingsDebounced, event_types, eventSource} from "../../../../script.js";
 import { getFreeWorldEntryUid, loadWorldInfo, reloadEditor, saveWorldInfo, world_names, moveWorldInfoEntry } from "../../../world-info.js";
 import { t } from "../../../i18n.js";
-import { callGenericPopup, POPUP_TYPE } from "../../../popup.js";
+import { callGenericPopup, POPUP_RESULT, POPUP_TYPE } from "../../../popup.js";
 
 // * Extension variables
 
@@ -258,7 +258,7 @@ function initFeatures() {
         const popupConfirm = await callGenericPopup(container, POPUP_TYPE.CONFIRM, "", {
             okButton: t`Copy`,
             cancelButton: t`Cancel`,
-            customButtons: [t`Transfer`],
+            customButtons: [{ text: t`Transfer`, classes: ['popup-button-ok'], result: 2 }],
         });
 
         log("popupConfirm = ", popupConfirm);
