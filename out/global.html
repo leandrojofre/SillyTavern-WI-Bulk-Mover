@@ -104,7 +104,7 @@
     
 
     
-    <h4 class="name" id="bulkMoveWIEntries"><span class="type-signature">(async) </span>bulkMoveWIEntries<span class="signature">(sourceName, targetName, sourceEntries)</span><span class="type-signature"> &rarr; {Promise.&lt;boolean>}</span></h4>
+    <h4 class="name" id="bulkCloneWIEntries"><span class="type-signature">(async) </span>bulkCloneWIEntries<span class="signature">(sourceName, targetName, sourceEntries)</span><span class="type-signature"> &rarr; {Promise.&lt;boolean>}</span></h4>
     
 
     
@@ -112,7 +112,7 @@
 
 
 <div class="description">
-    Moves a World Info entry from a source lorebook to a target lorebook.
+    Clones a World Info entry from a source lorebook to a target lorebook.
 </div>
 
 
@@ -309,6 +309,211 @@
     
 
     
+    <h4 class="name" id="bulkTransferWIEntries"><span class="type-signature">(async) </span>bulkTransferWIEntries<span class="signature">(sourceName, targetName, sourceEntries)</span><span class="type-signature"> &rarr; {Promise.&lt;boolean>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Transfers a World Info entry from a source lorebook to a target lorebook.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>sourceName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The name of the source lorebook file.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>targetName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The name of the target lorebook file.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>sourceEntries</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The entries of the source lorebook file.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line110">line 110</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    True if the move was successful, false otherwise.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise.&lt;boolean></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
     <h4 class="name" id="displaySettings"><span class="type-signature"></span>displaySettings<span class="signature">()</span><span class="type-signature"></span></h4>
     
 
@@ -361,7 +566,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line297">line 297</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line332">line 332</a>
     </li></ul></dd>
     
 
@@ -449,7 +654,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line104">line 104</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line133">line 133</a>
     </li></ul></dd>
     
 
@@ -537,7 +742,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line303">line 303</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line338">line 338</a>
     </li></ul></dd>
     
 
@@ -625,7 +830,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line316">line 316</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line351">line 351</a>
     </li></ul></dd>
     
 
@@ -713,7 +918,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line282">line 282</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line317">line 317</a>
     </li></ul></dd>
     
 
@@ -759,13 +964,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#bulkMoveWIEntries">bulkMoveWIEntries</a></li><li><a href="global.html#displaySettings">displaySettings</a></li><li><a href="global.html#initFeatures">initFeatures</a></li><li><a href="global.html#loadHTMLSettings">loadHTMLSettings</a></li><li><a href="global.html#setSettings">setSettings</a></li><li><a href="global.html#settingsBooleanButton">settingsBooleanButton</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#bulkCloneWIEntries">bulkCloneWIEntries</a></li><li><a href="global.html#bulkTransferWIEntries">bulkTransferWIEntries</a></li><li><a href="global.html#displaySettings">displaySettings</a></li><li><a href="global.html#initFeatures">initFeatures</a></li><li><a href="global.html#loadHTMLSettings">loadHTMLSettings</a></li><li><a href="global.html#setSettings">setSettings</a></li><li><a href="global.html#settingsBooleanButton">settingsBooleanButton</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Wed Apr 02 2025 07:34:11 GMT-0300 (GMT-03:00)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Wed Apr 02 2025 11:23:38 GMT-0300 (GMT-03:00)
 </footer>
 
 <script> prettyPrint(); </script>
