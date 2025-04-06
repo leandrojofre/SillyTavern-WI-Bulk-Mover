@@ -203,17 +203,22 @@ async function bulkDeleteWIEntries(sourceName, sourceEntries) {
 /** Adds extension buttons and their listeners. */
 function initFeatures() {
     $('#world_apply_current_sorting').after(`
-        <div id="wibm_bulk_move_wi_entries" class="menu_button fa-solid fa-boxes-packing interactable" title="Copy all entries into another lorebook" data-i18n="[title]Copy all entries into another lorebook" tabindex="0"></div>
+        <div id="wibm_bulk_move_wi_entries" class="menu_button fa-solid fa-boxes-packing interactable" title="Copy all entries into another lorebook" data-i18n="[title]Copy all entries into another lorebook" tabindex="0">
+        </div>
     `);
 
+    // TODO: I hate this code, it's so bulky. I need to refactor it at some point.
     $('#wibm_bulk_move_wi_entries').on('click', async function (e) {
-        const sourceWorld = $(this).data("wi-source");
-        const sourceWorldEntries = JSON.parse($(this).data("wi-source-entries") ?? "{}").entries;
+        const currentIndex = Number($('#world_editor_select').val());
+        const sourceWorld = world_names[currentIndex];
+        const sourceWorldData =  await loadWorldInfo(sourceWorld);
 
-        log("wibm_bulk_move_wi_entries.on(change)", sourceWorldEntries);
+        log("wibm_bulk_move_wi_entries.on(change)", sourceWorldData);
 
         // @ts-ignore
-        if (sourceWorld === "undefined" || !world_names.includes(sourceWorld)) return toastr.error(t`Lorebook was not selected or is still loading`);
+        if (!sourceWorldData) return toastr.error(t`Lorebook was not selected or does not exist`);
+
+        const sourceWorldEntries = sourceWorldData.entries;
 
         /** Create popup buttons. */
         const WISourceDefaultOption = document.createElement("option");
@@ -225,13 +230,28 @@ function initFeatures() {
         selectWISource.classList.add("text_pole", "wide100p", "marginTop10");
         selectWISource.appendChild(WISourceDefaultOption);
 
-        const sourceEntriesDefaulOption =  {id: -1, text: "All"};
         const selectSourceEntries =  document.createElement("select");
         selectSourceEntries.id = "wibm_bulk_move_wi_select_entries";
         selectSourceEntries.classList.add("wide100p", "marginTop20", "select2_multi_sameline", "select2_choice_clickable", "select2_choice_clickable_buttonstyle");
         selectSourceEntries.name = "wibm-source-entries[]";
-        selectSourceEntries.style.display = "none";
         selectSourceEntries.setAttribute("multiple", "multiple");
+
+        /** Give WI entries selector options. */
+        const sourceEntriesDefaultOption = { id: -1, text: t`All` };
+        const entriesData = [];
+
+        for (const key in sourceWorldEntries) {
+            const entry = sourceWorldEntries[key];
+            let dataName = entry.comment;
+
+            if (dataName === "") {
+                if (entry.key.length > 0) dataName = entry.key[0];
+                else if (entry.content.length > 0) dataName = entry.content.slice(0, entry.content.length >= 25 ? 25 : entry.content.length).replace(/\n/g, " ") + "...";
+                else dataName = "UID: " + entry.uid;
+            }
+
+            entriesData.push({ id: entry.uid, text: dataName, order: entry.displayIndex });
+        }
 
         /** Give WI selector options. */
         let selectableWorldCount = 0;
@@ -245,86 +265,78 @@ function initFeatures() {
             selectableWorldCount++;
         });
 
-        if (selectableWorldCount === 0) {
-            // @ts-ignore
-            toastr.warning(t`There are no other lorebooks to copy into.`);
-            return;
-        }
+        // @ts-ignore
+        if (selectableWorldCount === 0) return toastr.warning(t`There are no other lorebooks to copy into`);
 
         /** Create popup container and title. */
         const wrapper = document.createElement("div");
         const container = document.createElement("div");
 
         wrapper.textContent = t`Copy "${sourceWorld}" entries into:`;
-        container.id = "test"
+        container.id = "wibm_bulk_move_wi_container";
         container.appendChild(wrapper);
         container.appendChild(selectWISource);
         container.appendChild(selectSourceEntries);
 
         let selectedWorldIndex = -1;
         let selectedWorldEntries = ["-1"];
-        selectWISource.addEventListener("change", async function() {
-            selectedWorldIndex = this.value === "" ? -1 : Number(this.value);
 
-            /** Init WI entries selector. */
-            if (selectSourceEntries.style.display === "none")
-                $('#wibm_bulk_move_wi_select_entries').show();
+        $(selectSourceEntries).on('change', function(e) {
+            const newVal = $(this).val();
 
-            /** Give WI entries selector options. */
-            const data = [];
-
-            for (const key in sourceWorldEntries) {
-                const entry = sourceWorldEntries[key];
-                let dataName = entry.comment;
-
-                if (dataName === "") {
-                    if (entry.key.length > 0) dataName = entry.key[0];
-                    else if (entry.content.length > 0) dataName = entry.content.slice(0, entry.content.length >= 25 ? 25 : entry.content.length).replace(/\n/g, " ") + "...";
-                    else dataName = "UID: " + entry.uid;
-                }
-
-                data.push({ id: entry.uid, text: dataName });
+            // @ts-ignore
+            if (newVal.includes("-1") && !selectedWorldEntries.includes("-1")) {
+                /** If selected All, remove other selections. */
+                selectedWorldEntries = ["-1"];
+                $(selectSourceEntries).val(selectedWorldEntries);
+                $(selectSourceEntries).trigger('change');
+                log("wibm_bulk_move_wi_select_entries.on(change)", selectedWorldEntries);
+                return
             }
 
             // @ts-ignore
-            $('#wibm_bulk_move_wi_select_entries').select2({
+            if (newVal.includes("-1") && newVal.length > 1) {
+                /** If selected an entry, remove selection of All. */
+                // @ts-ignore
+                selectedWorldEntries = newVal.filter((uid) => uid !== "-1");
+                $(selectSourceEntries).val(selectedWorldEntries);
+                $(selectSourceEntries).trigger('change');
+                log("wibm_bulk_move_wi_select_entries.on(change)", selectedWorldEntries);
+                return
+            }
+
+            // @ts-ignore
+            selectedWorldEntries = newVal;
+
+            log("wibm_bulk_move_wi_select_entries.on(change)", selectedWorldEntries);
+        });
+
+        $(selectWISource).on("change", function() {
+            selectedWorldIndex = this.value === "" ? -1 : Number(this.value);
+        });
+
+        /** Init entry selector. */
+        const observer = new IntersectionObserver((entries, observer) => {
+            let isVisible = false;
+
+            for (const entry of entries) if (entry.isIntersecting) isVisible = true;
+            if (!isVisible) return;
+
+            observer.disconnect();
+
+            // @ts-ignore
+            $(selectSourceEntries).select2({
                 placeholder: 'Select an option',
-                data: [sourceEntriesDefaulOption, ...data],
+                data: [sourceEntriesDefaultOption, ...entriesData.sort((a, b) => a.order - b.order)],
                 dropdownParent: $('dialog.popup.popup--animation-fast[open]'),
                 closeOnSelect: false,
                 scrollAfterSelect: false,
             });
-
-            $('#wibm_bulk_move_wi_select_entries').val(selectedWorldEntries);
-            $('#wibm_bulk_move_wi_select_entries').trigger('change');
-            $('#wibm_bulk_move_wi_select_entries').on('change', function(e) {
-                const newVal = $(this).val();
-
-                // @ts-ignore
-                if (newVal.includes("-1") && !selectedWorldEntries.includes("-1")) {
-                    selectedWorldEntries = ["-1"];
-                    $('#wibm_bulk_move_wi_select_entries').val(selectedWorldEntries);
-                    $('#wibm_bulk_move_wi_select_entries').trigger('change');
-                    log("wibm_bulk_move_wi_select_entries.on(change)", selectedWorldEntries);
-                    return
-                }
-
-                // @ts-ignore
-                if (newVal.includes("-1") && newVal.length > 1) {
-                    // @ts-ignore
-                    selectedWorldEntries = newVal.filter((uid) => uid !== "-1");
-                    $('#wibm_bulk_move_wi_select_entries').val(selectedWorldEntries);
-                    $('#wibm_bulk_move_wi_select_entries').trigger('change');
-                    log("wibm_bulk_move_wi_select_entries.on(change)", selectedWorldEntries);
-                    return
-                }
-
-                // @ts-ignore
-                selectedWorldEntries = newVal;
-
-                log("wibm_bulk_move_wi_select_entries.on(change)", selectedWorldEntries);
-            });
+            $(selectSourceEntries).val(selectedWorldEntries);
+            $(selectSourceEntries).trigger('change');
         });
+
+        observer.observe(container);
 
         const popupConfirm = await callGenericPopup(container, POPUP_TYPE.CONFIRM, "", {
             okButton: t`Copy`,
