@@ -1,8 +1,8 @@
 import {extension_settings} from "../../../extensions.js";
-import {saveSettingsDebounced, event_types, eventSource} from "../../../../script.js";
-import { getFreeWorldEntryUid, loadWorldInfo, reloadEditor, saveWorldInfo, world_names, moveWorldInfoEntry } from "../../../world-info.js";
+import {saveSettingsDebounced} from "../../../../script.js";
+import { getFreeWorldEntryUid, loadWorldInfo, reloadEditor, saveWorldInfo, world_names, moveWorldInfoEntry, deleteWorldInfoEntry, deleteWIOriginalDataValue } from "../../../world-info.js";
 import { t } from "../../../i18n.js";
-import { callGenericPopup, POPUP_RESULT, POPUP_TYPE } from "../../../popup.js";
+import { callGenericPopup, POPUP_TYPE } from "../../../popup.js";
 
 // * Extension variables
 
@@ -25,7 +25,7 @@ const log = (...msg) => {
 // * Extension methods
 
 /**
- * Clones a World Info entry from a source lorebook to a target lorebook.
+ * Clones World Info entries from a source lorebook to a target lorebook.
  * @param {string} sourceName - The name of the source lorebook file.
  * @param {string} targetName - The name of the target lorebook file.
  * @param {Array} sourceEntries - The entries of the source lorebook file.
@@ -36,8 +36,15 @@ async function bulkCloneWIEntries(sourceName, targetName, sourceEntries) {
 
     if (!world_names.includes(targetName)) {
         // @ts-ignore
-        toastr.error(t`Target lorebook '${targetName}' not found.`);
-        log(`Target lorebook '${targetName}' does not exist.`);
+        toastr.error(t`Target lorebook '${targetName}' not found`);
+        log(`Target lorebook '${targetName}' not found`);
+        return false;
+    }
+
+    if (!sourceEntries?.length) {
+        // @ts-ignore
+        toastr.error(t`Lorebook '${sourceName}' has no entries`);
+        log(`Lorebook '${sourceName}' has no entries`);
         return false;
     }
 
@@ -46,8 +53,8 @@ async function bulkCloneWIEntries(sourceName, targetName, sourceEntries) {
 
         if (!targetData || !targetData.entries) {
             // @ts-ignore
-            toastr.error(t`Failed to load data for target lorebook '${targetName}'.`);
-            log(`Could not load target data for '${targetName}'.`);
+            toastr.error(t`Failed to load data for target lorebook '${targetName}'`);
+            log(`Could not load target data for '${targetName}'`);
             return false;
         }
 
@@ -61,7 +68,7 @@ async function bulkCloneWIEntries(sourceName, targetName, sourceEntries) {
             const newUid = getFreeWorldEntryUid(targetData);
 
             if (newUid === null) {
-                log(`Failed to get a free UID in '${targetName}'.`);
+                log(`Failed to get a free UID in '${targetName}'`);
                 return false;
             }
 
@@ -75,8 +82,6 @@ async function bulkCloneWIEntries(sourceName, targetName, sourceEntries) {
 
         await saveWorldInfo(targetName, targetData, true);
 
-        log(`Saved target lorebook '${targetName}'.`);
-
         const currentEditorBookIndex = Number($('#world_editor_select').val());
 
         if (!isNaN(currentEditorBookIndex)) {
@@ -87,7 +92,7 @@ async function bulkCloneWIEntries(sourceName, targetName, sourceEntries) {
         }
 
         // @ts-ignore
-        toastr.success(t`Selected entries copied from "${sourceName}" into "${targetName}"`);
+        toastr.success(t`Selected entries were copied from '${sourceName}' into '${targetName}' successfully`);
 
         return true;
     } catch (error) {
@@ -101,13 +106,20 @@ async function bulkCloneWIEntries(sourceName, targetName, sourceEntries) {
 }
 
 /**
- * Transfers a World Info entry from a source lorebook to a target lorebook.
+ * Transfers World Info entries from a source lorebook to a target lorebook.
  * @param {string} sourceName - The name of the source lorebook file.
  * @param {string} targetName - The name of the target lorebook file.
  * @param {Array} sourceEntries - The entries of the source lorebook file.
  * @returns {Promise<boolean>} True if the move was successful, false otherwise.
  */
 async function bulkTransferWIEntries(sourceName, targetName, sourceEntries) {
+    if (!sourceEntries?.length) {
+        // @ts-ignore
+        toastr.error(t`Lorebook '${sourceName}' has no entries`);
+        log(`Lorebook '${sourceName}' has no entries`);
+        return false;
+    }
+
     try {
         for (const entry of sourceEntries) {
             const moved = await moveWorldInfoEntry(sourceName, targetName, entry.uid);
@@ -116,7 +128,66 @@ async function bulkTransferWIEntries(sourceName, targetName, sourceEntries) {
         }
 
         // @ts-ignore
-        toastr.success(t`Selected entries transferred from "${sourceName}" into "${targetName}"`);
+        toastr.success(t`Selected entries were transferred from '${sourceName}' into '${targetName}' successfully`);
+
+        return true;
+    } catch (error) {
+
+        // @ts-ignore
+        toastr.error(t`Unexpected error: ${error.message}`);
+        log('Unexpected error:', error);
+
+        return false;
+    }
+}
+
+/**
+ * Deletes multiple entries from a World Info.
+ * @param {string} sourceName - The name of the source lorebook file.
+ * @param {Array} sourceEntries - The entries of the source lorebook file.
+ * @returns {Promise<boolean>} True if the move was successful, false otherwise.
+ */
+async function bulkDeleteWIEntries(sourceName, sourceEntries) {
+    if (!sourceEntries?.length) {
+        // @ts-ignore
+        toastr.error(t`Lorebook '${sourceName}' has no entries`);
+        log(`Lorebook '${sourceName}' has no entries`);
+        return false;
+    }
+
+    /** Create delete popup container and title. */
+    const wrapper = document.createElement("div");
+    const container = document.createElement("div");
+
+    wrapper.innerHTML = t`Are you sure you want to delete lorebook entries from ` + `<span style="font-weight: bold;">'${sourceName}'</span>?`;
+    container.appendChild(wrapper);
+
+    const popupConfirm = await callGenericPopup(container, POPUP_TYPE.CONFIRM, "", {
+        okButton: t`Yes`,
+        cancelButton: t`Cancel`,
+    });
+
+    // @ts-ignore
+    if (popupConfirm !== 1) return toastr.warning(t`Entries deletion cancelled`);
+
+    try {
+        const sourceData = await loadWorldInfo(sourceName);
+
+        for (const entry of sourceEntries) {
+            const uid = entry.uid;
+            const deleted = await deleteWorldInfoEntry(sourceData, uid, { silent: true });
+
+            if (!deleted) throw new Error(`Failed to delete entry with uid ${uid}`);
+
+            deleteWIOriginalDataValue(sourceData, uid);
+        }
+
+        await saveWorldInfo(sourceName, sourceData, true);
+
+        reloadEditor(sourceName);
+
+        // @ts-ignore
+        toastr.success(t`Selected entries from '${sourceName}' were deleted successfully`);
 
         return true;
     } catch (error) {
@@ -258,22 +329,24 @@ function initFeatures() {
         const popupConfirm = await callGenericPopup(container, POPUP_TYPE.CONFIRM, "", {
             okButton: t`Copy`,
             cancelButton: t`Cancel`,
-            customButtons: [{ text: t`Transfer`, classes: ['popup-button-ok'], result: 2 }],
+            customButtons: [
+                { text: t`Delete`, classes: ['popup-button-ok'], result: 3 },
+                { text: t`Transfer`, classes: ['popup-button-ok'], result: 2 },
+            ],
         });
 
         log("popupConfirm = ", popupConfirm);
 
         if (!popupConfirm) return;
-        if (selectedWorldIndex === -1) return;
-        if (selectedWorldEntries.length === 0) return;
+        // @ts-ignore
+        if (selectedWorldIndex === -1 && popupConfirm !== 3) return toastr.warning(t`Please select a target lorebook`);
+        // @ts-ignore
+        if (selectedWorldEntries.length === 0) return toastr.warning(t`Please select lorebook entries`);
 
         const selectedValue = world_names[selectedWorldIndex];
 
-        if (!selectedValue) {
-            // @ts-ignore
-            toastr.warning(t`Please select a target lorebook.`);
-            return;
-        }
+        // @ts-ignore
+        if (!selectedValue && popupConfirm !== 3) return toastr.warning(t`Target lorebook does not exist`);
 
         /** Filter selected entries to copy. */
         let filteredEntries = [];
@@ -290,19 +363,11 @@ function initFeatures() {
 
         log("filteredEntries =", filteredEntries);
 
-        if (popupConfirm === 1)
-            await bulkCloneWIEntries(sourceWorld, selectedValue, filteredEntries);
-
-        if (popupConfirm === 2)
-            await bulkTransferWIEntries(sourceWorld, selectedValue, filteredEntries);
+        if (popupConfirm === 1) await bulkCloneWIEntries(sourceWorld, selectedValue, filteredEntries);
+        if (popupConfirm === 2) await bulkTransferWIEntries(sourceWorld, selectedValue, filteredEntries);
+        if (popupConfirm === 3) await bulkDeleteWIEntries(sourceWorld, filteredEntries);
     });
 }
-
-eventSource.on(event_types.WORLDINFO_UPDATED, function(...args) {
-    log("WORLDINFO_UPDATED", args);
-    $('#wibm_bulk_move_wi_entries').data('wi-source', args[0]);
-    $('#wibm_bulk_move_wi_entries').data('wi-source-entries', JSON.stringify(args[1]));
-});
 
 // * Methods in charge of controlling the extension settings
 
