@@ -316,7 +316,7 @@ function initFeatures() {
         </div>
     `);
 
-    // TODO: I hate this code, it's still a little bulky.
+    // TODO: I hate this code, it's still a little bulky. FUCK JQUERY.
     $('#wibm_bulk_move_wi_entries').on('click', async function (e) {
         const currentIndex = Number($('#world_editor_select').val());
         const sourceWorld = world_names[currentIndex];
