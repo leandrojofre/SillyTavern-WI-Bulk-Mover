@@ -7,8 +7,8 @@ Install the extension using this link: ```https://github.com/leandrojofre/SillyT
 - Clone **some** entries from `lorebook_a` into `lorebook_b`
 - Transfer **all** entries from `lorebook_a` into `lorebook_b`
 - Transfer **some** entries from `lorebook_a` into `lorebook_b`
-- Delete **all** entries from `lorebook_a`
-- Delete **some** entries from `lorebook_a`
+- Delete **all** entries from `lorebook_a` It has a **confirm deletion** screen
+- Delete **some** entries from `lorebook_a` It has a **confirm deletion** screen
 
 <image width="50%" src="https://github.com/user-attachments/assets/7107a9be-9f7d-4fdb-930d-ff886ea8b0d6"/>
 

@@ -130,7 +130,7 @@ async function bulkDeleteWIEntries(sourceName, sourceEntries) {
         const wrapper = document.createElement("div");
         const container = document.createElement("div");
 
-        wrapper.innerHTML = t`Are you sure you want to delete lorebook entries from ` + `<span style="font-weight: bold;">'${sourceName}'</span>?`;
+        wrapper.innerHTML = t`Are you sure you want to delete the selected lorebook entries from ` + `<span style="font-weight: bold;">'${sourceName}'</span>?`;
         container.appendChild(wrapper);
 
         const popupConfirm = await callGenericPopup(container, POPUP_TYPE.CONFIRM, "", {
@@ -183,7 +183,6 @@ async function createBulkMoverPopup(sourceWorld, sourceWorldEntries) {
     WISourceDefaultOption.textContent = `-- ${t`Select Target Lorebook`} --`;
 
     const selectWISource = document.createElement("select");
-    selectWISource.id = "wibm_bulk_move_wi_select";
     selectWISource.classList.add("text_pole", "wide100p", "marginTop10");
     selectWISource.appendChild(WISourceDefaultOption);
 
@@ -203,7 +202,6 @@ async function createBulkMoverPopup(sourceWorld, sourceWorldEntries) {
     if (selectableWorldCount === 0) return toastr.warning(t`There are no other lorebooks to transfer into`);
 
     const selectSourceEntries =  document.createElement("select");
-    selectSourceEntries.id = "wibm_bulk_move_wi_select_entries";
     selectSourceEntries.classList.add("wide100p", "marginTop20", "select2_multi_sameline", "select2_choice_clickable", "select2_choice_clickable_buttonstyle");
     selectSourceEntries.name = "wibm-source-entries[]";
     selectSourceEntries.setAttribute("multiple", "multiple");
@@ -262,7 +260,7 @@ async function createBulkMoverPopup(sourceWorld, sourceWorldEntries) {
     const wrapper = document.createElement("div");
     const container = document.createElement("div");
 
-    wrapper.textContent = t`Copy "${sourceWorld}" entries into:`;
+    wrapper.textContent = t`Transfer "${sourceWorld}" entries into...`;
     container.id = "wibm_bulk_move_wi_container";
     container.appendChild(wrapper);
     container.appendChild(selectWISource);
@@ -312,7 +310,7 @@ async function createBulkMoverPopup(sourceWorld, sourceWorldEntries) {
 /** Adds extension buttons and their listeners. */
 function initFeatures() {
     $('#world_apply_current_sorting').after(`
-        <div id="wibm_bulk_move_wi_entries" class="menu_button fa-solid fa-boxes-packing interactable" title="Copy all entries into another lorebook" data-i18n="[title]Copy all entries into another lorebook" tabindex="0">
+        <div id="wibm_bulk_move_wi_entries" class="menu_button fa-solid fa-boxes-packing interactable" title="Bulk transfer lorebook entries" data-i18n="[title]Bulk transfer lorebook entries" tabindex="0">
         </div>
     `);
 
