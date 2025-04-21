@@ -187,6 +187,21 @@ async function createBulkMoverPopup(sourceWorld, sourceWorldEntries) {
     selectWISource.classList.add("text_pole", "wide100p", "marginTop10");
     selectWISource.appendChild(WISourceDefaultOption);
 
+    /** Give WI selector options. */
+    let selectableWorldCount = 0;
+    world_names.forEach(worldName => {
+        if (worldName === sourceWorld) return;
+
+        const option = document.createElement("option");
+        option.value = world_names.indexOf(worldName).toString();
+        option.textContent = worldName;
+        selectWISource.appendChild(option);
+        selectableWorldCount++;
+    });
+
+    // @ts-ignore
+    if (selectableWorldCount === 0) return toastr.warning(t`There are no other lorebooks to transfer into`);
+
     const selectSourceEntries =  document.createElement("select");
     selectSourceEntries.id = "wibm_bulk_move_wi_select_entries";
     selectSourceEntries.classList.add("wide100p", "marginTop20", "select2_multi_sameline", "select2_choice_clickable", "select2_choice_clickable_buttonstyle");
@@ -242,21 +257,6 @@ async function createBulkMoverPopup(sourceWorld, sourceWorldEntries) {
 
         log("selectSourceEntries.on(change)", selectedWorldEntries);
     });
-
-    /** Give WI selector options. */
-    let selectableWorldCount = 0;
-    world_names.forEach(worldName => {
-        if (worldName === sourceWorld) return;
-
-        const option = document.createElement("option");
-        option.value = world_names.indexOf(worldName).toString();
-        option.textContent = worldName;
-        selectWISource.appendChild(option);
-        selectableWorldCount++;
-    });
-
-    // @ts-ignore
-    if (selectableWorldCount === 0) return toastr.warning(t`There are no other lorebooks to copy into`);
 
     /** Create popup container and title. */
     const wrapper = document.createElement("div");
