@@ -10,15 +10,13 @@ Install the extension using this link: ```https://github.com/leandrojofre/SillyT
 - Delete **all** entries from `lorebook_a` It has a **confirm deletion** screen
 - Delete **some** entries from `lorebook_a` It has a **confirm deletion** screen
 
-<image width="50%" src="https://github.com/user-attachments/assets/7107a9be-9f7d-4fdb-930d-ff886ea8b0d6"/>
+<image width="50%" src="https://github.com/user-attachments/assets/ecbef399-e617-4202-ab21-4601d6af7939"/>
 
-<image width="50%" src="https://github.com/user-attachments/assets/7b9d0dfb-bc46-455e-bdc1-0af1831b2e71"/>
+<image width="50%" src="https://github.com/user-attachments/assets/cb725d0d-a080-4419-84fa-2a4eccc4dc10"/>
 
-<image width="50%" src="https://github.com/user-attachments/assets/25270b74-6b32-424b-92bb-a1391113b89b"/>
+<image width="50%" src="https://github.com/user-attachments/assets/e7868fce-fdf7-4d53-acf9-18e5f05b95d9"/>
 
-<image width="50%" src="https://github.com/user-attachments/assets/19ff54af-ef06-4ebb-9112-5f253b00e65a"/>
-
-<image width="50%" src="https://github.com/user-attachments/assets/07cf8d3d-bf49-44ab-a3bb-babfbec7c6e0"/>
+<image width="50%" src="https://github.com/user-attachments/assets/c1eae1b0-3ccf-4fca-bd21-49dac1dae5eb"/>
 
 ## Support and Contributions
 - Thanks to bmen25124 for the [PR](https://github.com/SillyTavern/SillyTavern/pull/3768) that saved me 80% of the work.
