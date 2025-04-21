@@ -25,38 +25,21 @@ const log = (...msg) => {
 // * Extension methods
 
 /**
- * Clones World Info entries from a source lorebook to a target lorebook.
- * @param {string} sourceName - The name of the source lorebook file.
- * @param {string} targetName - The name of the target lorebook file.
- * @param {Array} sourceEntries - The entries of the source lorebook file.
- * @returns {Promise<boolean>} True if the move was successful, false otherwise.
- */
+    Clones World Info entries from a source lorebook to a target lorebook.
+    @param {string} sourceName - The name of the source lorebook file.
+    @param {string} targetName - The name of the target lorebook file.
+    @param {Array} sourceEntries - The entries of the source lorebook file.
+    @returns {Promise<boolean>} True if the move was successful, false otherwise.
+*/
 async function bulkCloneWIEntries(sourceName, targetName, sourceEntries) {
-    if (sourceName === targetName) return false;
-
-    if (!world_names.includes(targetName)) {
-        // @ts-ignore
-        toastr.error(t`Target lorebook '${targetName}' not found`);
-        log(`Target lorebook '${targetName}' not found`);
-        return false;
-    }
-
-    if (!sourceEntries?.length) {
-        // @ts-ignore
-        toastr.error(t`Lorebook '${sourceName}' has no entries`);
-        log(`Lorebook '${sourceName}' has no entries`);
-        return false;
-    }
-
     try {
+        if (sourceName === targetName) throw new Error(`Target lorebook must not be the same than source`);
+        if (!world_names.includes(targetName)) throw new Error(`Target lorebook '${targetName}' not found`);
+        if (!sourceEntries?.length) throw new Error(`Lorebook '${sourceName}' has no entries`);
+
         const targetData = await loadWorldInfo(targetName);
 
-        if (!targetData || !targetData.entries) {
-            // @ts-ignore
-            toastr.error(t`Failed to load data for target lorebook '${targetName}'`);
-            log(`Could not load target data for '${targetName}'`);
-            return false;
-        }
+        if (!targetData || !targetData.entries) throw new Error(`Failed to load data for target lorebook '${targetName}'`);
 
         log("SOURCE:", sourceEntries, "TARGET:", targetData);
 
@@ -67,10 +50,7 @@ async function bulkCloneWIEntries(sourceName, targetName, sourceEntries) {
         for (const entry of sourceEntries) {
             const newUid = getFreeWorldEntryUid(targetData);
 
-            if (newUid === null) {
-                log(`Failed to get a free UID in '${targetName}'`);
-                return false;
-            }
+            if (newUid === null) throw new Error(`Failed to get a free UID in '${targetName}'`);
 
             maxDisplayIndex++
             entry.uid = newUid;
@@ -98,7 +78,7 @@ async function bulkCloneWIEntries(sourceName, targetName, sourceEntries) {
     } catch (error) {
 
         // @ts-ignore
-        toastr.error(t`An unexpected error occurred while moving the entry: ${error.message}`);
+        toastr.error(t`Unexpected error: ${error.message}`);
         log('Unexpected error:', error);
 
         return false;
@@ -106,21 +86,16 @@ async function bulkCloneWIEntries(sourceName, targetName, sourceEntries) {
 }
 
 /**
- * Transfers World Info entries from a source lorebook to a target lorebook.
- * @param {string} sourceName - The name of the source lorebook file.
- * @param {string} targetName - The name of the target lorebook file.
- * @param {Array} sourceEntries - The entries of the source lorebook file.
- * @returns {Promise<boolean>} True if the move was successful, false otherwise.
- */
+    Transfers World Info entries from a source lorebook to a target lorebook.
+    @param {string} sourceName - The name of the source lorebook file.
+    @param {string} targetName - The name of the target lorebook file.
+    @param {Array} sourceEntries - The entries of the source lorebook file.
+    @returns {Promise<boolean>} True if the move was successful, false otherwise.
+*/
 async function bulkTransferWIEntries(sourceName, targetName, sourceEntries) {
-    if (!sourceEntries?.length) {
-        // @ts-ignore
-        toastr.error(t`Lorebook '${sourceName}' has no entries`);
-        log(`Lorebook '${sourceName}' has no entries`);
-        return false;
-    }
-
     try {
+        if (!sourceEntries?.length) throw new Error(`Lorebook '${sourceName}' has no entries`);
+
         for (const entry of sourceEntries) {
             const moved = await moveWorldInfoEntry(sourceName, targetName, entry.uid);
 
@@ -142,35 +117,30 @@ async function bulkTransferWIEntries(sourceName, targetName, sourceEntries) {
 }
 
 /**
- * Deletes multiple entries from a World Info.
- * @param {string} sourceName - The name of the source lorebook file.
- * @param {Array} sourceEntries - The entries of the source lorebook file.
- * @returns {Promise<boolean>} True if the move was successful, false otherwise.
- */
+    Deletes multiple entries from a World Info.
+    @param {String} sourceName - The name of the source lorebook file.
+    @param {Array} sourceEntries - The entries of the source lorebook file.
+    @returns {Promise<boolean>} True if the move was successful, false otherwise.
+*/
 async function bulkDeleteWIEntries(sourceName, sourceEntries) {
-    if (!sourceEntries?.length) {
-        // @ts-ignore
-        toastr.error(t`Lorebook '${sourceName}' has no entries`);
-        log(`Lorebook '${sourceName}' has no entries`);
-        return false;
-    }
-
-    /** Create delete popup container and title. */
-    const wrapper = document.createElement("div");
-    const container = document.createElement("div");
-
-    wrapper.innerHTML = t`Are you sure you want to delete lorebook entries from ` + `<span style="font-weight: bold;">'${sourceName}'</span>?`;
-    container.appendChild(wrapper);
-
-    const popupConfirm = await callGenericPopup(container, POPUP_TYPE.CONFIRM, "", {
-        okButton: t`Yes`,
-        cancelButton: t`Cancel`,
-    });
-
-    // @ts-ignore
-    if (popupConfirm !== 1) return toastr.warning(t`Entries deletion cancelled`);
-
     try {
+        if (!sourceEntries?.length) throw new Error(`Lorebook '${sourceName}' has no entries`);
+
+        /** Create delete popup container and title. */
+        const wrapper = document.createElement("div");
+        const container = document.createElement("div");
+
+        wrapper.innerHTML = t`Are you sure you want to delete the selected lorebook entries from ` + `<span style="font-weight: bold;">'${sourceName}'</span>?`;
+        container.appendChild(wrapper);
+
+        const popupConfirm = await callGenericPopup(container, POPUP_TYPE.CONFIRM, "", {
+            okButton: t`Yes`,
+            cancelButton: t`Cancel`,
+        });
+
+        // @ts-ignore
+        if (popupConfirm !== 1) throw new Error(`Entries deletion cancelled`);
+
         const sourceData = await loadWorldInfo(sourceName);
 
         for (const entry of sourceEntries) {
@@ -200,14 +170,151 @@ async function bulkDeleteWIEntries(sourceName, sourceEntries) {
     }
 }
 
+/**
+    Creates Popup for World Info
+    @param {String} sourceWorld
+    @param {Object} sourceWorldEntries
+    @returns {Promise<Object>|null}
+*/
+async function createBulkMoverPopup(sourceWorld, sourceWorldEntries) {
+    /** Create popup buttons. */
+    const WISourceDefaultOption = document.createElement("option");
+    WISourceDefaultOption.value = "";
+    WISourceDefaultOption.textContent = `-- ${t`Select Target Lorebook`} --`;
+
+    const selectWISource = document.createElement("select");
+    selectWISource.classList.add("text_pole", "wide100p", "marginTop10");
+    selectWISource.appendChild(WISourceDefaultOption);
+
+    /** Give WI selector options. */
+    let selectableWorldCount = 0;
+    world_names.forEach(worldName => {
+        if (worldName === sourceWorld) return;
+
+        const option = document.createElement("option");
+        option.value = world_names.indexOf(worldName).toString();
+        option.textContent = worldName;
+        selectWISource.appendChild(option);
+        selectableWorldCount++;
+    });
+
+    // @ts-ignore
+    if (selectableWorldCount === 0) return toastr.warning(t`There are no other lorebooks to transfer into`);
+
+    const selectSourceEntries =  document.createElement("select");
+    selectSourceEntries.classList.add("wide100p", "marginTop20", "select2_multi_sameline", "select2_choice_clickable", "select2_choice_clickable_buttonstyle");
+    selectSourceEntries.name = "wibm-source-entries[]";
+    selectSourceEntries.setAttribute("multiple", "multiple");
+
+    /** Give WI entries selector options. */
+    const sourceEntriesDefaultOption = { id: -1, text: t`All` };
+    const entriesData = [];
+
+    for (const key in sourceWorldEntries) {
+        const entry = sourceWorldEntries[key];
+        let dataName = entry.comment;
+
+        if (dataName === "") {
+            if (entry.key.length > 0) dataName = entry.key[0];
+            else if (entry.content.length > 0) dataName = entry.content.slice(0, entry.content.length >= 25 ? 25 : entry.content.length).replace(/\n/g, " ") + "...";
+            else dataName = "UID: " + entry.uid;
+        }
+
+        entriesData.push({ id: entry.uid, text: dataName, order: entry.displayIndex });
+    }
+
+    let selectedWorldIndex = -1;
+    let selectedWorldEntries = ["-1"];
+
+    $(selectSourceEntries).on('change', function(e) {
+        const newVal = $(this).val();
+
+        // @ts-ignore
+        if (newVal.includes("-1") && !selectedWorldEntries.includes("-1")) {
+            /** If selected All, remove other selections. */
+            selectedWorldEntries = ["-1"];
+            $(selectSourceEntries).val(selectedWorldEntries);
+            $(selectSourceEntries).trigger('change');
+            log("selectSourceEntries.on(change)", selectedWorldEntries);
+            return
+        }
+
+        // @ts-ignore
+        if (newVal.includes("-1") && newVal.length > 1) {
+            /** If selected an entry, remove selection of All. */
+            // @ts-ignore
+            selectedWorldEntries = newVal.filter((uid) => uid !== "-1");
+            $(selectSourceEntries).val(selectedWorldEntries);
+            $(selectSourceEntries).trigger('change');
+            log("selectSourceEntries.on(change)", selectedWorldEntries);
+            return
+        }
+
+        // @ts-ignore
+        selectedWorldEntries = newVal;
+
+        log("selectSourceEntries.on(change)", selectedWorldEntries);
+    });
+
+    /** Create popup container and title. */
+    const wrapper = document.createElement("div");
+    const container = document.createElement("div");
+
+    wrapper.textContent = t`Transfer "${sourceWorld}" entries into...`;
+    container.id = "wibm_bulk_move_wi_container";
+    container.appendChild(wrapper);
+    container.appendChild(selectWISource);
+    container.appendChild(selectSourceEntries);
+
+    $(selectWISource).on("change", function() {
+        selectedWorldIndex = this.value === "" ? -1 : Number(this.value);
+    });
+
+    /** Init entry selector. */
+    const observer = new IntersectionObserver((entries, observer) => {
+        let isVisible = false;
+
+        for (const entry of entries) if (entry.isIntersecting) isVisible = true;
+        if (!isVisible) return;
+
+        observer.disconnect();
+
+        // @ts-ignore
+        $(selectSourceEntries).select2({
+            placeholder: 'Select an option',
+            data: [sourceEntriesDefaultOption, ...entriesData.sort((a, b) => a.order - b.order)],
+            dropdownParent: $('dialog.popup.popup--animation-fast[open]'),
+            closeOnSelect: false,
+            scrollAfterSelect: false,
+        });
+        $(selectSourceEntries).val(selectedWorldEntries);
+        $(selectSourceEntries).trigger('change');
+    });
+
+    observer.observe(container);
+
+    return {
+        popupConfirm: await callGenericPopup(container, POPUP_TYPE.CONFIRM, "", {
+                okButton: t`Copy`,
+                cancelButton: t`Cancel`,
+                customButtons: [
+                    { text: t`Delete`, classes: ['popup-button-ok'], result: 3 },
+                    { text: t`Transfer`, classes: ['popup-button-ok'], result: 2 },
+                ],
+            }),
+        selectedWorldIndex,
+        selectedWorldEntries,
+    };
+}
+
 /** Adds extension buttons and their listeners. */
 function initFeatures() {
     $('#world_apply_current_sorting').after(`
-        <div id="wibm_bulk_move_wi_entries" class="menu_button fa-solid fa-boxes-packing interactable" title="Copy all entries into another lorebook" data-i18n="[title]Copy all entries into another lorebook" tabindex="0">
+        <div id="wibm_bulk_move_wi_entries" class="menu_button fa-solid fa-boxes-packing interactable" title="Bulk transfer lorebook entries" data-i18n="[title]Bulk transfer lorebook entries" tabindex="0">
         </div>
     `);
 
-    // TODO: I hate this code, it's so bulky. I need to refactor it at some point.
+    // TODO: I hate this code, it's still a little bulky. FUCK JQUERY.
     $('#wibm_bulk_move_wi_entries').on('click', async function (e) {
         const currentIndex = Number($('#world_editor_select').val());
         const sourceWorld = world_names[currentIndex];
@@ -219,135 +326,9 @@ function initFeatures() {
         if (!sourceWorldData) return toastr.error(t`Lorebook was not selected or does not exist`);
 
         const sourceWorldEntries = sourceWorldData.entries;
+        const { popupConfirm, selectedWorldIndex, selectedWorldEntries } = await createBulkMoverPopup(sourceWorld, sourceWorldEntries);
 
-        /** Create popup buttons. */
-        const WISourceDefaultOption = document.createElement("option");
-        WISourceDefaultOption.value = "";
-        WISourceDefaultOption.textContent = `-- ${t`Select Target Lorebook`} --`;
-
-        const selectWISource = document.createElement("select");
-        selectWISource.id = "wibm_bulk_move_wi_select";
-        selectWISource.classList.add("text_pole", "wide100p", "marginTop10");
-        selectWISource.appendChild(WISourceDefaultOption);
-
-        const selectSourceEntries =  document.createElement("select");
-        selectSourceEntries.id = "wibm_bulk_move_wi_select_entries";
-        selectSourceEntries.classList.add("wide100p", "marginTop20", "select2_multi_sameline", "select2_choice_clickable", "select2_choice_clickable_buttonstyle");
-        selectSourceEntries.name = "wibm-source-entries[]";
-        selectSourceEntries.setAttribute("multiple", "multiple");
-
-        /** Give WI entries selector options. */
-        const sourceEntriesDefaultOption = { id: -1, text: t`All` };
-        const entriesData = [];
-
-        for (const key in sourceWorldEntries) {
-            const entry = sourceWorldEntries[key];
-            let dataName = entry.comment;
-
-            if (dataName === "") {
-                if (entry.key.length > 0) dataName = entry.key[0];
-                else if (entry.content.length > 0) dataName = entry.content.slice(0, entry.content.length >= 25 ? 25 : entry.content.length).replace(/\n/g, " ") + "...";
-                else dataName = "UID: " + entry.uid;
-            }
-
-            entriesData.push({ id: entry.uid, text: dataName, order: entry.displayIndex });
-        }
-
-        /** Give WI selector options. */
-        let selectableWorldCount = 0;
-        world_names.forEach(worldName => {
-            if (worldName === sourceWorld) return;
-
-            const option = document.createElement("option");
-            option.value = world_names.indexOf(worldName).toString();
-            option.textContent = worldName;
-            selectWISource.appendChild(option);
-            selectableWorldCount++;
-        });
-
-        // @ts-ignore
-        if (selectableWorldCount === 0) return toastr.warning(t`There are no other lorebooks to copy into`);
-
-        /** Create popup container and title. */
-        const wrapper = document.createElement("div");
-        const container = document.createElement("div");
-
-        wrapper.textContent = t`Copy "${sourceWorld}" entries into:`;
-        container.id = "wibm_bulk_move_wi_container";
-        container.appendChild(wrapper);
-        container.appendChild(selectWISource);
-        container.appendChild(selectSourceEntries);
-
-        let selectedWorldIndex = -1;
-        let selectedWorldEntries = ["-1"];
-
-        $(selectSourceEntries).on('change', function(e) {
-            const newVal = $(this).val();
-
-            // @ts-ignore
-            if (newVal.includes("-1") && !selectedWorldEntries.includes("-1")) {
-                /** If selected All, remove other selections. */
-                selectedWorldEntries = ["-1"];
-                $(selectSourceEntries).val(selectedWorldEntries);
-                $(selectSourceEntries).trigger('change');
-                log("wibm_bulk_move_wi_select_entries.on(change)", selectedWorldEntries);
-                return
-            }
-
-            // @ts-ignore
-            if (newVal.includes("-1") && newVal.length > 1) {
-                /** If selected an entry, remove selection of All. */
-                // @ts-ignore
-                selectedWorldEntries = newVal.filter((uid) => uid !== "-1");
-                $(selectSourceEntries).val(selectedWorldEntries);
-                $(selectSourceEntries).trigger('change');
-                log("wibm_bulk_move_wi_select_entries.on(change)", selectedWorldEntries);
-                return
-            }
-
-            // @ts-ignore
-            selectedWorldEntries = newVal;
-
-            log("wibm_bulk_move_wi_select_entries.on(change)", selectedWorldEntries);
-        });
-
-        $(selectWISource).on("change", function() {
-            selectedWorldIndex = this.value === "" ? -1 : Number(this.value);
-        });
-
-        /** Init entry selector. */
-        const observer = new IntersectionObserver((entries, observer) => {
-            let isVisible = false;
-
-            for (const entry of entries) if (entry.isIntersecting) isVisible = true;
-            if (!isVisible) return;
-
-            observer.disconnect();
-
-            // @ts-ignore
-            $(selectSourceEntries).select2({
-                placeholder: 'Select an option',
-                data: [sourceEntriesDefaultOption, ...entriesData.sort((a, b) => a.order - b.order)],
-                dropdownParent: $('dialog.popup.popup--animation-fast[open]'),
-                closeOnSelect: false,
-                scrollAfterSelect: false,
-            });
-            $(selectSourceEntries).val(selectedWorldEntries);
-            $(selectSourceEntries).trigger('change');
-        });
-
-        observer.observe(container);
-
-        const popupConfirm = await callGenericPopup(container, POPUP_TYPE.CONFIRM, "", {
-            okButton: t`Copy`,
-            cancelButton: t`Cancel`,
-            customButtons: [
-                { text: t`Delete`, classes: ['popup-button-ok'], result: 3 },
-                { text: t`Transfer`, classes: ['popup-button-ok'], result: 2 },
-            ],
-        });
-
-        log("popupConfirm = ", popupConfirm);
+        log("popupConfirm =", popupConfirm);
 
         if (!popupConfirm) return;
         // @ts-ignore
