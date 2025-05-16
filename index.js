@@ -336,14 +336,14 @@ function initFeatures() {
         // @ts-ignore
         if (selectedWorldEntries.length === 0) return toastr.warning(t`Please select lorebook entries`);
 
-        const selectedValue = world_names[selectedWorldIndex];
+        const targetWorld = world_names[selectedWorldIndex];
 
         // @ts-ignore
-        if (!selectedValue && popupConfirm !== 3) return toastr.warning(t`Target lorebook does not exist`);
+        if (!targetWorld && popupConfirm !== 3) return toastr.warning(t`Target lorebook does not exist`);
 
-        /** Filter selected entries to copy. */
+        /** Filter selected entries to transfer. */
         let filteredEntries = [];
-        const arraySourceWorldEntries = Object.values(sourceWorldEntries)
+        const arraySourceWorldEntries = Object.values(sourceWorldEntries);
 
         log(selectedWorldEntries, !selectedWorldEntries.includes("-1"), sourceWorldEntries, arraySourceWorldEntries);
 
@@ -356,8 +356,8 @@ function initFeatures() {
 
         log("filteredEntries =", filteredEntries);
 
-        if (popupConfirm === 1) await bulkCloneWIEntries(sourceWorld, selectedValue, filteredEntries);
-        if (popupConfirm === 2) await bulkTransferWIEntries(sourceWorld, selectedValue, filteredEntries);
+        if (popupConfirm === 1) await bulkCloneWIEntries(sourceWorld, targetWorld, filteredEntries);
+        if (popupConfirm === 2) await bulkTransferWIEntries(sourceWorld, targetWorld, filteredEntries);
         if (popupConfirm === 3) await bulkDeleteWIEntries(sourceWorld, filteredEntries);
     });
 }
