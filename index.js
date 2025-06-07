@@ -52,7 +52,7 @@ async function bulkCloneWIEntries(sourceName, targetName, sourceEntries) {
 
             if (newUid === null) throw new Error(`Failed to get a free UID in '${targetName}'`);
 
-            maxDisplayIndex++
+            maxDisplayIndex++;
             entry.uid = newUid;
             entry.displayIndex = maxDisplayIndex;
             targetData.entries[newUid] = entry;
@@ -415,6 +415,7 @@ function setSettings() {
 // * Initialize Extension
 
 (async function initExtension() {
+    return;
 
     if (!context.extensionSettings[extensionName]) {
         context.extensionSettings[extensionName] = structuredClone(defaultSettings);
