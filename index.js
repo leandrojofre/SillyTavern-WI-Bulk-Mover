@@ -415,7 +415,6 @@ function setSettings() {
 // * Initialize Extension
 
 (async function initExtension() {
-    return;
 
     if (!context.extensionSettings[extensionName]) {
         context.extensionSettings[extensionName] = structuredClone(defaultSettings);
