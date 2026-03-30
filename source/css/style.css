@@ -1,18 +1,97 @@
-#wibm-settings-window div.flex-container.flex-column,
-#wibm-settings-window label.flex-container.flex-column {
-	flex-direction: column;
-	align-items: normal;
-}
+.wi-bulk-mover-custom-css {
+    --wi-bulk-mover-separator-bottom: linear-gradient(90deg, var(--transparent), color-mix(in srgb, var(--SmartThemeBodyColor), transparent 80%), var(--transparent)) 1;
+    --wi-bulk-mover-border-color: var(--SmartThemeBorderColor);
 
-#wibm-settings-window div.flex-container,
-#wibm-settings-window label.flex-container {
-	align-items: center;
-	flex-wrap: nowrap;
-}
+    .d-none {
+        display: none !important;
+    }
 
-#wibm-settings-window  .separator-bottom {
-	border-bottom: 1px solid #2a2a2a;
-	padding-bottom: 1vh;
-	margin-bottom: 1vh;
-	border-radius: 1vh;
+    .flex-container {
+        display: flex;
+        align-items: center;
+        flex-wrap: nowrap;
+    }
+
+    .flex-column {
+        flex-direction: column;
+	    align-items: normal;
+    }
+
+    .separator-bottom {
+        border-bottom: 1px solid;
+        border-image: var(--wi-bulk-mover-separator-bottom) !important;
+        padding-bottom: 5px;
+        margin-bottom: 5px;
+        border-radius: 0;
+    }
+
+    .flex-center {
+        justify-content: center;
+        align-items: center;
+    }
+
+    .flex-center-row {
+        justify-content: flex-start;
+        align-items: center;
+    }
+
+    .flex-center-col {
+        justify-content: center;
+        align-items: flex-start;
+    }
+
+    .flex-center-between {
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .flex-grow-1 {
+        flex-grow: 1;
+    }
+
+	.p-15px {
+		padding: 15px;
+	}
+
+	.mb-10px {
+		margin-bottom: 10px;
+	}
+
+    .text-quote {
+        color: var(--SmartThemeQuoteColor);
+    }
+
+    .text-body {
+        color: var(--SmartThemeBodyColor);
+    }
+
+    .text-muted {
+        color: color-mix(in srgb, currentColor 85%, black);
+    }
+
+    .fw-bolder {
+        font-weight: bolder;
+    }
+
+    .lh-normal {
+        line-height: normal;
+    }
+
+    .cursor-pointer {
+        cursor: pointer;
+    }
+
+    .bg-bot {
+        background-color: var(--SmartThemeBotMesBlurTintColor);
+    }
+
+    .bg-user {
+        background-color: var(--SmartThemeUserMesBlurTintColor);
+    }
+
+    .border {
+        border: solid;
+        border-width: 1px;
+        border-color: var(--wi-bulk-mover-border-color) !important;
+    }
 }

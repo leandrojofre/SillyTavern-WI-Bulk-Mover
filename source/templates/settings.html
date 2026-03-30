@@ -1,29 +1,25 @@
-<!--
-You might want to add additional HTML elements to ST. It's good practice to separate it out from your code
--->
-<div class="example-extension-settings">
+<div class="wi-bulk-mover-custom-css">
 	<div class="inline-drawer">
 		<div class="inline-drawer-toggle inline-drawer-header">
 			<b>WI Bulk Mover</b>
 			<div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
 		</div>
-		<div id="wi-bulk-mover-settings-window" class="inline-drawer-content" style="padding: 0.5vh;">
 
-			<div class="flex-container flex-column separator-bottom">
+		<div id="wi-bulk-mover-settings-window" class="inline-drawer-content p-15px">
+
+			<div class="flex-container flex-column mb-10px">
 				<b>Debug settings</b>
 
 				<div class="flex-container">
 					<input id="wi-bulk-mover-check-configuration" class="menu_button" type="button" value="Check Configuration" />
-					Print the configuration values ​​through the console
+					<span>Print the configuration values ​​through the console</span>
 				</div>
 
 				<label class="flex-container">
 					<input id="wi-bulk-mover-activate-debug" wi-bulk-mover-setting="debug" type="checkbox" />
-					Enable/Disable the debug console logs
+					<span>Enable/Disable the debug console logs</span>
 				</label>
 			</div>
-
-			<hr class="sysHR" />
 		</div>
 	</div>
 </div>
