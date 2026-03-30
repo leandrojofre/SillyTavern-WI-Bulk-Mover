@@ -4,7 +4,7 @@
     "requires": [],
     "optional": [],
     "js": "index.js",
-    "css": "style.css",
+    "css": "source/css/style.css",
     "author": "Leandro Jofre",
     "version": "1.2.6",
     "homePage": "https://github.com/leandrojofre/SillyTavern-WI-Bulk-Mover.git",
