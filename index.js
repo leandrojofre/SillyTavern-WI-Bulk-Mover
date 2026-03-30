@@ -51,10 +51,10 @@ const debounceTimeout = Object.freeze({
 });
 
 const extensionName = "WI-Bulk-Mover";
-const extensionFullName = 'SillyTavern-Extension-Template';
+const extensionFullName = 'SillyTavern-WI-Bulk-Mover';
 const metadataName = extensionName.toLowerCase().replaceAll('-', '_');
 const htmlSuffix = extensionName.toLowerCase();
-const extensionFolderPath = `scripts/extensions/third-party/${extensionName}`;
+const extensionFolderPath = `scripts/extensions/third-party/${extensionFullName}`;
 
 /** @type {ExtensionSettings} */
 const extensionSettings = extension_settings[extensionName];
@@ -80,7 +80,7 @@ const HTML_TEMPLATES = {
                     HTML_TEMPLATES[fileName] = $(response);
                 })
                 .fail(function(jqXHR, textStatus, errorThrown) {
-                    ExtensionName.error({jqXHR, textStatus, errorThrown});
+                    WiBulkMover.error({jqXHR, textStatus, errorThrown});
                 });
         }
 
@@ -276,13 +276,13 @@ async function loadSettingsMenu() {
 // * MARK:Initialize Extension
 
 eventSource.once(eventTypes.APP_INITIALIZED, async function() {
-    if (!context().extensionSettings[extensionName]) {
-        context().extensionSettings[extensionName] = structuredClone(defaultSettings);
+    if (!context().extensionSettings[extensionFullName]) {
+        context().extensionSettings[extensionFullName] = structuredClone(defaultSettings);
     }
 
     for (const key of Object.keys(defaultSettings)) {
-        if (context().extensionSettings[extensionName][key] === undefined) {
-            context().extensionSettings[extensionName][key] = defaultSettings[key];
+        if (context().extensionSettings[extensionFullName][key] === undefined) {
+            context().extensionSettings[extensionFullName][key] = defaultSettings[key];
         }
     }
 
