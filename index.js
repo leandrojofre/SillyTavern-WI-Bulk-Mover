@@ -1,4 +1,4 @@
-import { getFreeWorldEntryUid, world_names, moveWorldInfoEntry, deleteWorldInfoEntry, deleteWIOriginalDataValue } from "../../../world-info.js";
+import { moveWorldInfoEntry, deleteWorldInfoEntry } from "../../../world-info.js";
 
 // * MARK:Types Definitions
 
@@ -24,7 +24,7 @@ import { getFreeWorldEntryUid, world_names, moveWorldInfoEntry, deleteWorldInfoE
  * @typedef {MouseEvent & {data: Object; currentTarget: T;}} CursorEventData
  */
 
-// * MARK:Extension variables
+// * MARK:ST Context
 
 const context = () => SillyTavern.getContext();
 
@@ -56,6 +56,8 @@ const {
     lodash
 } = SillyTavern.libs;
 
+// * MARK:Extension variables
+
 /**
  * @readonly
  * @enum {number}
@@ -71,19 +73,21 @@ const debounceTimeout = Object.freeze({
  * @readonly
  * @enum {string[]}
  */
-const popupResults = Object.freeze([
-    'cancel',
-    'apply',
-    'copy',
-    'transfer',
-    'delete'
-]);
+const popupActions = Object.freeze({
+    copy: 'copy',
+    transfer: 'transfer',
+    delete: 'delete',
+    selectAll: 'select-all'
+});
 
 const extensionName = "WI-Bulk-Mover";
 const extensionFullName = 'SillyTavern-WI-Bulk-Mover';
 const metadataName = extensionName.toLowerCase().replaceAll('-', '_');
 const htmlSuffix = extensionName.toLowerCase();
 const extensionFolderPath = `scripts/extensions/third-party/${extensionFullName}`;
+
+/** @type {boolean} */
+let isMovingEntries = false;
 
 /** @type {ExtensionSettings} */
 const extensionSettings = extension_settings[extensionFullName];
@@ -116,7 +120,7 @@ const HTML_TEMPLATES = {
         const $file = HTML_TEMPLATES[fileName];
 
         if (!$file) {
-            toastr.warning(t`HTML template could not be loaded`, extensionName);
+            toastr.warning(t`HTML template "${fileName}" could not be loaded.`, extensionName);
             return $();
         }
 
@@ -288,24 +292,125 @@ function onClickEntryRowHeader(e) {
 }
 
 /**
- * @param {EventData<HTMLDivElement>} [e]
+ * @param {string} source
+ * @param {string} target
+ * @param {number[]} uids
+ * @param {boolean} deleteOriginal
  */
-async function openTransferPopup(e) {
-    const $popup = await HTML_TEMPLATES.get('popup', {clone: true});
-    const $popupEntryRow = await HTML_TEMPLATES.get('popupEntryRow', {clone: true});
-    const $targetSelector = $popup.find('select[name="target-lorebook"]');
-    const $entriesList = $popup.find('.entries-list');
+async function transferWorldInfoEntries(source, target, uids, deleteOriginal = false) {
+    if (isMovingEntries) return toastr.error(t`Wait until the current bulk moving finishes`, extensionName, {
+        toastClass: 'toast'
+    });
 
-    const {selectedWorld, selectedWorldName, worldNames} = await getLorebooks();
+    const uniqueUids = new Set(uids).values().toArray();
 
-    if (!selectedWorld) return toastr.warning(t`Open a lorebook first`, extensionName);
+    const $toastr = toastr.info(
+        t`${deleteOriginal ? 'Transferring' : 'Copying'} entries to the lorebook "${target}", wait until the finish confirmation message.`,
+        extensionName,
+        {
+            timeOut: 0,
+            extendedTimeOut: 0,
+            tapToDismiss: false,
+        }
+    );
 
-    const {entries} = selectedWorld;
+    const toastrDuplicateOption = structuredClone(toastr.options.preventDuplicates ?? false);
+    const toastrClassOption = structuredClone(toastr.options.toastClass ?? 'toast');
 
-    for (const worldName of worldNames) {
-        $('<option>', {text: worldName, value: worldName}).appendTo($targetSelector);
+    toastr.options.preventDuplicates = true;
+    toastr.options.toastClass = 'displayNone';
+    isMovingEntries = true;
+
+    try {
+        for (const uid of uniqueUids) {
+            if (isNaN(uid)) continue;
+            await moveWorldInfoEntry(source, target, uid, {deleteOriginal});
+        }
+    } catch (error) {
+        WiBulkMover.error(error);
+    } finally {
+        toastr.options.preventDuplicates = toastrDuplicateOption;
+        toastr.options.toastClass = toastrClassOption;
+        isMovingEntries = false;
+        $toastr.remove();
+    }
+}
+
+/**
+ * @param {CursorEventData<HTMLButtonElement>} e
+ */
+async function onClickPopupAction(e) {
+    if (isMovingEntries) return toastr.error(t`Wait until the current bulk moving finishes`, extensionName, {
+        toastClass: 'toast'
+    });
+
+    const $button = $(e.currentTarget);
+    const {action} = $button.data();
+
+    if (!Object.values(popupActions).includes(action))
+        return toastr.warning(t`Invalid bulk edition action`, extensionName);
+
+    const $popup = $('#wi-bulk-mover-transfer-popup');
+    const $allPopups = () => $('.popup .wi-bulk-mover-custom-css');
+
+    if (action === popupActions.selectAll) {
+        const $entries = $popup.find('input[name="entry-selected"]');
+        let allChecked = true;
+
+        $entries.each(function(i, entry) {
+            const isChecked = $(entry).is(':checked');
+
+            if (!isChecked) {
+                allChecked = false;
+                return false;
+            }
+        });
+
+        return $entries.prop('checked', !allChecked);
     }
 
+    const sourceWorld = e.data.selectedWorldName;
+    const targetWorld = $popup.find('select[name="target-lorebook"]').val();
+    const entriesFormSerialized = $popup.find('form.entries-list').serializeArray();
+    const entryUids = [];
+
+    for (const formEntryData of entriesFormSerialized) {
+        const {name, value} = formEntryData;
+        const numericValue = Number(value ?? NaN);
+
+        if (!name || value === '' || isNaN(numericValue)) continue;
+
+        if (name === 'entry-selected') entryUids.push(numericValue);
+    }
+
+    WiBulkMover.log({popup: $popup, sourceWorld, targetWorld, entryUids})
+
+    if (!sourceWorld) return toastr.error(t`Could not find a selected source Lorebook.`, extensionName);
+    if (!targetWorld) return toastr.error(t`Select a target Lorebook.`, extensionName);
+    if (!entryUids.length) return toastr.warning(t`Select at least one entry.`, extensionName);
+
+    if (action === popupActions.copy) await transferWorldInfoEntries(sourceWorld, String(targetWorld), entryUids, false);
+    if (action === popupActions.transfer) await transferWorldInfoEntries(sourceWorld, String(targetWorld), entryUids, true);
+
+    const shouldUpdateEntryList = action === popupActions.transfer || action === popupActions.delete;
+
+    if (shouldUpdateEntryList) $allPopups().trigger('wi-bulk-mover:popup:update-list');
+
+    toastr.success(t`${$button.find('span').text()} operation finished successfully.`, extensionName);
+}
+
+/**
+ * @param {JQuery<HTMLElement>} container
+ * @param {Object[]} entries
+ */
+async function buildPopupEntryList(container, entries) {
+    container.empty();
+
+    WiBulkMover.log({container, entries});
+
+    if (entries.length) return;
+
+    const $popupEntryRow = await HTML_TEMPLATES.get('popupEntryRow', {clone: true});
     const sortedEntries = Object
         .values(entries)
         .sort((entryA, entryB) => entryA.displayIndex - entryB.displayIndex);
@@ -327,11 +432,56 @@ async function openTransferPopup(e) {
         $entryRow.find('input[name="entry-selected"]')
             .attr('value', String(entry.uid));
 
-        $entriesList.append($entryRow);
+        container.append($entryRow);
     }
+
+    if (!sortedEntries?.length) container.attr('empty-list', '');
+}
+
+/**
+ * MARK:openTransferPopup()
+ * @param {EventData<HTMLDivElement>} [e]
+ */
+async function openTransferPopup(e) {
+    const $popup = await HTML_TEMPLATES.get('popup', {clone: true});
+    const $targetSelector = $popup.find('select[name="target-lorebook"]');
+    const $entriesList = $popup.find('.entries-list');
+
+    const {selectedWorld, selectedWorldName, worldNames} = await getLorebooks();
+
+    if (!selectedWorld) return toastr.warning(t`Open a lorebook first.`, extensionName);
+
+    const {entries} = selectedWorld;
+
+    if (!Object.values(entries)?.length) return toastr.warning(t`The selected lorebook has no entries.`, extensionName);
+
+    for (const worldName of worldNames) {
+        $('<option>', {text: worldName, value: worldName}).appendTo($targetSelector);
+    }
+
+    await buildPopupEntryList($entriesList, entries);
 
     $popup.find('.selected-world-name').text(selectedWorldName);
     $popup.on('click', '.entry-item .inline-drawer-header', /** @type {any} */ (onClickEntryRowHeader));
+
+    $popup.on('click', '.transfer-popup-action', {selectedWorldName}, async function(e) {
+        const $actionToolbar = $popup.find('.action-toolbar');
+
+        try {
+            $actionToolbar.toggleClass('disabled', true);
+            // @ts-ignore
+            await onClickPopupAction(e);
+        } catch (error) {
+            WiBulkMover.error(error);
+        } finally {
+            $actionToolbar.toggleClass('disabled', false);
+        }
+    });
+
+    $popup.on('wi-bulk-mover:popup:update-list', async function() {
+        const {entries} = await loadWorldInfo(selectedWorldName);
+        await buildPopupEntryList($entriesList, entries);
+    });
 
     const popupOptions = {
         cancelButton: t`Close`,
@@ -340,20 +490,15 @@ async function openTransferPopup(e) {
         allowEscapeClose: true,
         leftAlign: true,
         transparent:false,
+        onClose: function() {
+            $popup.off('click');
+            $popup.off('wi-bulk-mover:popup:update-list');
+        },
     };
 
     popupOptions[isMobile() ? 'wider' : 'wide'] = true;
 
-    const userChoice = await callGenericPopup($popup, POPUP_TYPE.TEXT, '', {
-        ...popupOptions,
-        onClose: function() {
-            $popup.off('click');
-        }
-    });
-
-    if (typeof userChoice !== 'number') return;
-
-    WiBulkMover.log({userChoice, option: popupResults[userChoice]});
+    await callGenericPopup($popup, POPUP_TYPE.TEXT, '', popupOptions);
 }
 
 /** Adds extension buttons and their listeners. */

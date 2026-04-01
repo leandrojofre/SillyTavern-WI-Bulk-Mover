@@ -67,6 +67,10 @@
         flex-grow: 1;
     }
 
+    .flex-wrap {
+        flex-wrap: wrap;
+    }
+
 	.p-0 {
 		padding: 0;
 	}
@@ -156,6 +160,25 @@
 		overflow-y: scroll;
 	}
 
+    .standoutHeader {
+        background-image: none;
+        background-color: var(--black50a);
+        border-radius: 0;
+    }
+
+    .standoutHeader~.inline-drawer-content {
+        border-radius: 0;
+        border-top-width: 0;
+    }
+
+    .disabled input,
+    .disabled select,
+    .disabled button,
+    .disabled textarea {
+        filter: brightness(0.5);
+        pointer-events: none;
+    }
+
 	.entry-content {
 		white-space: break-spaces;
     	text-align: left;
@@ -174,6 +197,12 @@
         color: var(--wi-bulk-mover-text-muted-color);
 	}
 
+    .entries-list[empty-list]::before {
+		content: "The selected lorebook has no entries";
+        color: var(--wi-bulk-mover-text-muted-color);
+        font-style: italic;
+    }
+
 	.entries-list .inline-drawer-header {
 		cursor: auto;
         padding: 1px;
@@ -185,17 +214,6 @@
 
     .entry-item:has(input[name="entry-selected"]:checked) span.entry-uid {
         color: var(--SmartThemeQuoteColor);
-    }
-
-    .standoutHeader {
-        background-image: none;
-        background-color: var(--black50a);
-        border-radius: 0;
-    }
-
-    .standoutHeader~.inline-drawer-content {
-        border-radius: 0;
-        border-top-width: 0;
     }
 
     @media (max-width: 500px) {

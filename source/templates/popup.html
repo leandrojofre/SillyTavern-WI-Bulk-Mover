@@ -7,7 +7,7 @@
             </div>
 
             <label class="flex-container flex-column flex-col-start w-100 gap-0">
-                <small class="text-muted">Select target lorebook</small>
+                <small class="text-muted">Select target lorebook for moving actions</small>
                 <select name="target-lorebook" class="text_pole flex1 m-0 text-muted">
                     <option value disabled selected hidden>--Select an option--</option>
                 </select>
@@ -18,21 +18,28 @@
             <b>Actions</b>
             <small class="text-muted">The buttons will only affect selected entries</small>
 
-            <div class="flex-container">
-                <button type="button" class="menu_button px-15px gap-15px m-0 popup-button-ok me-15px">
+            <div class="flex-container flex-wrap action-toolbar">
+                <button type="button" data-action="delete" class="menu_button transfer-popup-action px-15px gap-15px m-0 popup-button-ok me-15px">
                     <span>Delete</span>
                     <i class="fa-solid fa-trash-alt"></i>
                 </button>
 
-                <button type="button" class="menu_button px-15px gap-15px m-0">
-                    <span>Transfer</span>
-                    <i class="fa-solid fa-truck-arrow-right"></i>
-                </button>
+                <div class="flex-container">
+                    <button type="button" data-action="transfer" class="menu_button transfer-popup-action px-15px gap-15px m-0">
+                        <span>Transfer</span>
+                        <i class="fa-solid fa-truck-arrow-right"></i>
+                    </button>
 
-                <button type="button" class="menu_button px-15px gap-15px m-0">
-                    <span>Copy</span>
-                    <i class="fa-solid fa-external-link-square"></i>
-                </button>
+                    <button type="button" data-action="copy" class="menu_button transfer-popup-action px-15px gap-15px m-0">
+                        <span>Copy</span>
+                        <i class="fa-solid fa-external-link-square"></i>
+                    </button>
+
+                    <button type="button" data-action="select-all" class="menu_button transfer-popup-action px-15px gap-15px m-0">
+                        <span>Select</span>
+                        <i class="fa-solid fa-list-check"></i>
+                    </button>
+                </div>
             </div>
         </div>
 
