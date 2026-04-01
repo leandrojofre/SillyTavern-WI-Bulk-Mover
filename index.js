@@ -87,7 +87,7 @@ const htmlSuffix = extensionName.toLowerCase();
 const extensionFolderPath = `scripts/extensions/third-party/${extensionFullName}`;
 
 /** @type {boolean} */
-let isMovingEntries = false;
+let isEditingEntries = false;
 
 /** @type {ExtensionSettings} */
 const extensionSettings = extension_settings[extensionFullName];
@@ -298,11 +298,9 @@ function onClickEntryRowHeader(e) {
  * @param {boolean} deleteOriginal
  */
 async function transferWorldInfoEntries(source, target, uids, deleteOriginal = false) {
-    if (isMovingEntries) return toastr.error(t`Wait until the current bulk moving finishes`, extensionName, {
+    if (isEditingEntries) return toastr.error(t`Wait until the current bulk moving finishes`, extensionName, {
         toastClass: 'toast'
     });
-
-    const uniqueUids = new Set(uids).values().toArray();
 
     const $toastr = toastr.info(
         t`${deleteOriginal ? 'Transferring' : 'Copying'} entries to the lorebook "${target}", wait until the finish confirmation message.`,
@@ -319,9 +317,11 @@ async function transferWorldInfoEntries(source, target, uids, deleteOriginal = f
 
     toastr.options.preventDuplicates = true;
     toastr.options.toastClass = 'displayNone';
-    isMovingEntries = true;
+    isEditingEntries = true;
 
     try {
+        const uniqueUids = new Set(uids).values().toArray();
+
         for (const uid of uniqueUids) {
             if (isNaN(uid)) continue;
             await moveWorldInfoEntry(source, target, uid, {deleteOriginal});
@@ -331,7 +331,50 @@ async function transferWorldInfoEntries(source, target, uids, deleteOriginal = f
     } finally {
         toastr.options.preventDuplicates = toastrDuplicateOption;
         toastr.options.toastClass = toastrClassOption;
-        isMovingEntries = false;
+        isEditingEntries = false;
+        $toastr.remove();
+    }
+}
+
+/**
+ * @param {string} source
+ * @param {number[]} uids
+ */
+async function deleteWorldInfoEntries(source, uids) {
+    if (isEditingEntries) return toastr.error(t`Wait until the current bulk moving finishes`, extensionName, {
+        toastClass: 'toast'
+    });
+
+    const worldInfoData = await loadWorldInfo(source);
+
+    if (!worldInfoData) return;
+
+    const $toastr = toastr.info(
+        t`Deleting entries from the lorebook "${source}", wait until the finish confirmation message.`,
+        extensionName,
+        {
+            timeOut: 0,
+            extendedTimeOut: 0,
+            tapToDismiss: false,
+        }
+    );
+
+    isEditingEntries = true;
+
+    try {
+        const uniqueUids = new Set(uids).values().toArray();
+
+        for (const uid of uniqueUids) {
+            if (isNaN(uid)) continue;
+            await deleteWorldInfoEntry(worldInfoData, uid, {silent: true});
+        }
+
+        await saveWorldInfo(source, lodash.cloneDeep(worldInfoData), true);
+        reloadWorldInfoEditor(source, false);
+    } catch (error) {
+        WiBulkMover.error(error);
+    } finally {
+        isEditingEntries = false;
         $toastr.remove();
     }
 }
@@ -340,7 +383,7 @@ async function transferWorldInfoEntries(source, target, uids, deleteOriginal = f
  * @param {CursorEventData<HTMLButtonElement>} e
  */
 async function onClickPopupAction(e) {
-    if (isMovingEntries) return toastr.error(t`Wait until the current bulk moving finishes`, extensionName, {
+    if (isEditingEntries) return toastr.error(t`Wait until the current bulk moving finishes`, extensionName, {
         toastClass: 'toast'
     });
 
@@ -372,6 +415,8 @@ async function onClickPopupAction(e) {
     const sourceWorld = e.data.selectedWorldName;
     const targetWorld = $popup.find('select[name="target-lorebook"]').val();
     const entriesFormSerialized = $popup.find('form.entries-list').serializeArray();
+    const shouldUpdateEntryList = action === popupActions.transfer || action === popupActions.delete;
+    const shouldCheckTarget = action === popupActions.transfer || action === popupActions.copy;
     const entryUids = [];
 
     for (const formEntryData of entriesFormSerialized) {
@@ -386,13 +431,12 @@ async function onClickPopupAction(e) {
     WiBulkMover.log({popup: $popup, sourceWorld, targetWorld, entryUids})
 
     if (!sourceWorld) return toastr.error(t`Could not find a selected source Lorebook.`, extensionName);
-    if (!targetWorld) return toastr.error(t`Select a target Lorebook.`, extensionName);
     if (!entryUids.length) return toastr.warning(t`Select at least one entry.`, extensionName);
+    if (!targetWorld && shouldCheckTarget) return toastr.error(t`Select a target Lorebook.`, extensionName);
 
     if (action === popupActions.copy) await transferWorldInfoEntries(sourceWorld, String(targetWorld), entryUids, false);
     if (action === popupActions.transfer) await transferWorldInfoEntries(sourceWorld, String(targetWorld), entryUids, true);
-
-    const shouldUpdateEntryList = action === popupActions.transfer || action === popupActions.delete;
+    if (action === popupActions.delete) await deleteWorldInfoEntries(sourceWorld, entryUids);
 
     if (shouldUpdateEntryList) $allPopups().trigger('wi-bulk-mover:popup:update-list');
 
