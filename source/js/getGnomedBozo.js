@@ -57,7 +57,7 @@ function randomWithBias(min = 0, max = 100, bias = 1) {
 }
 
 async function summonTheChosenGnomer() {
-    const userWorthinessBarrier = 20;
+    const userWorthinessBarrier = 69 / 3;
     const isThyUserWorthyOfDaGnome = randomWithBias(1, userWorthinessBarrier);
 
     if (isThyUserWorthyOfDaGnome !== userWorthinessBarrier) return;
