@@ -1,0 +1,236 @@
+.wi-bulk-mover-custom-css {
+    --wi-bulk-mover-separator-bottom: linear-gradient(90deg, var(--transparent), color-mix(in srgb, var(--SmartThemeBodyColor), transparent 80%), var(--transparent)) 1;
+    --wi-bulk-mover-border-color: var(--SmartThemeBorderColor);
+    --wi-bulk-mover-text-muted-color: color-mix(in srgb, currentColor 75%, black);
+
+    .d-none {
+        display: none !important;
+    }
+
+    .separator-bottom {
+        border-bottom: 1px solid;
+        border-image: var(--wi-bulk-mover-separator-bottom) !important;
+        padding-bottom: 10px;
+        margin-bottom: 5px;
+        border-radius: 0;
+    }
+
+    .separator-bottom-thin {
+        border-bottom: 1px solid;
+        border-color: color-mix(in srgb, var(--SmartThemeBodyColor), transparent 80%) !important;
+        border-radius: 0;
+    }
+
+    .flex-container {
+        display: flex;
+        align-items: center;
+        flex-wrap: nowrap;
+    }
+
+    .flex-column {
+        flex-direction: column;
+	    align-items: flex-start;
+    }
+
+	.gap-0 {
+		gap: 0;
+	}
+
+	.gap-15px {
+		gap: 15px;
+	}
+
+    .flex-center {
+        justify-content: center;
+        align-items: center;
+    }
+
+    .flex-center-between {
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .flex-row-center {
+        justify-content: flex-start;
+        align-items: center;
+    }
+
+    .flex-row-baseline {
+        align-items: baseline;
+    }
+
+    .flex-col-start {
+        align-items: flex-start;
+    }
+
+    .flex-grow-1 {
+        flex-grow: 1;
+    }
+
+    .flex-wrap {
+        flex-wrap: wrap;
+    }
+
+	.p-0 {
+		padding: 0;
+	}
+
+	.p-5px {
+		padding: 5px;
+	}
+
+	.p-15px {
+		padding: 15px;
+	}
+
+	.px-15px {
+		padding-left: 15px;
+		padding-right: 15px;
+	}
+
+	.m-0 {
+		margin: 0;
+	}
+
+    .me-15px {
+        margin-right: 15px;
+    }
+
+	.mb-10px {
+		margin-bottom: 10px;
+	}
+
+	.w-100 {
+		width: 100%;
+	}
+
+    .mh-60 {
+        max-height: 60vh;
+    }
+
+    .text-quote {
+        color: var(--SmartThemeQuoteColor);
+    }
+
+    .text-body {
+        color: var(--SmartThemeBodyColor);
+    }
+
+    .text-muted {
+        color: var(--wi-bulk-mover-text-muted-color);
+    }
+
+	.text-ellipsis {
+		flex: 1 1 auto;
+		white-space: nowrap;
+		overflow: hidden;
+		text-wrap: nowrap;
+		text-overflow: ellipsis;
+		display: block;
+	}
+
+    .fw-bolder {
+        font-weight: bolder;
+    }
+
+    .lh-normal {
+        line-height: normal;
+    }
+
+    .cursor-pointer {
+        cursor: pointer;
+    }
+
+    .bg-bot {
+        background-color: var(--SmartThemeBotMesBlurTintColor);
+    }
+
+    .bg-user {
+        background-color: var(--SmartThemeUserMesBlurTintColor);
+    }
+
+    .border {
+        border: solid;
+        border-width: 1px;
+        border-color: var(--wi-bulk-mover-border-color) !important;
+    }
+
+	.scrollable {
+		height: 100%;
+		overflow-y: scroll;
+	}
+
+    .standoutHeader {
+        background-image: none;
+        background-color: var(--black50a);
+        border-radius: 0;
+    }
+
+    .standoutHeader~.inline-drawer-content {
+        border-radius: 0;
+        border-top-width: 0;
+    }
+
+    .disabled input,
+    .disabled select,
+    .disabled button,
+    .disabled textarea {
+        filter: brightness(0.5);
+        pointer-events: none;
+    }
+
+	.entry-content {
+		white-space: break-spaces;
+    	text-align: left;
+	}
+
+	.selected-world-name::before {
+		content: "(";
+	}
+
+	.selected-world-name::after {
+		content: ")";
+	}
+
+	.entry-uid::before {
+		content: "UID: ";
+        color: var(--wi-bulk-mover-text-muted-color);
+	}
+
+    .entries-list[empty-list]::before {
+		content: "The selected lorebook has no entries";
+        color: var(--wi-bulk-mover-text-muted-color);
+        font-style: italic;
+    }
+
+	.entries-list .inline-drawer-header {
+		cursor: auto;
+        padding: 1px;
+	}
+
+    .entry-comment {
+        text-align: left;
+    }
+
+    .entry-item:has(input[name="entry-selected"]:checked) span.entry-uid {
+        color: var(--SmartThemeQuoteColor);
+    }
+
+    @media (max-width: 500px) {
+        .px-15px {
+            padding-left: 5px;
+            padding-right: 5px;
+        }
+    }
+}
+
+/* Get gnomed bozo edition */
+.wi-bulk-mover-custom-css.get-gnomed-bozo{
+    position: absolute;
+    z-index: 8008;
+    max-width: 50vw;
+    max-height: 50vh;
+    padding: 0;
+    margin: 0;
+    transition: top 0.5s ease, opacity 1s ease;
+}
