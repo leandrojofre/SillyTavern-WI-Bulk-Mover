@@ -1,4 +1,4 @@
-import { getFreeWorldEntryUid, loadWorldInfo, reloadEditor, saveWorldInfo, world_names, moveWorldInfoEntry, deleteWorldInfoEntry, deleteWIOriginalDataValue } from "../../../world-info.js";
+import { getFreeWorldEntryUid, world_names, moveWorldInfoEntry, deleteWorldInfoEntry, deleteWIOriginalDataValue } from "../../../world-info.js";
 
 // * MARK:Types Definitions
 
@@ -14,6 +14,16 @@ import { getFreeWorldEntryUid, loadWorldInfo, reloadEditor, saveWorldInfo, world
  * @property {boolean} debug
  */
 
+/**
+ * @template T
+ * @typedef {Event & {data: Object; currentTarget: T;}} EventData
+ */
+
+/**
+ * @template T
+ * @typedef {MouseEvent & {data: Object; currentTarget: T;}} CursorEventData
+ */
+
 // * MARK:Extension variables
 
 const context = () => SillyTavern.getContext();
@@ -26,13 +36,20 @@ const {
     scrollChatToBottom,
     callGenericPopup,
     getThumbnailUrl,
+    getRequestHeaders,
+    isMobile,
     Popup,
     POPUP_TYPE,
     extensionSettings: extension_settings,
     saveSettingsDebounced,
     powerUserSettings,
     eventSource,
-    eventTypes
+    eventTypes,
+    // World Info
+    loadWorldInfo,
+    saveWorldInfo,
+    reloadWorldInfoEditor,
+    updateWorldInfoList,
 } = context();
 
 const {
@@ -50,6 +67,18 @@ const debounceTimeout = Object.freeze({
     LONG: 700
 });
 
+/**
+ * @readonly
+ * @enum {string[]}
+ */
+const popupResults = Object.freeze([
+    'cancel',
+    'apply',
+    'copy',
+    'transfer',
+    'delete'
+]);
+
 const extensionName = "WI-Bulk-Mover";
 const extensionFullName = 'SillyTavern-WI-Bulk-Mover';
 const metadataName = extensionName.toLowerCase().replaceAll('-', '_');
@@ -57,7 +86,7 @@ const htmlSuffix = extensionName.toLowerCase();
 const extensionFolderPath = `scripts/extensions/third-party/${extensionFullName}`;
 
 /** @type {ExtensionSettings} */
-const extensionSettings = extension_settings[extensionName];
+const extensionSettings = extension_settings[extensionFullName];
 
 /** @type {ExtensionSettings} */
 const defaultSettings = {
@@ -150,8 +179,20 @@ function createElement(elem, options = {}) {
 }
 
 /**
+ * @param {string?} [extraSuffix]
+ * @returns {string} UUID
+ */
+function generateUUID(extraSuffix) {
+    const randUUID = self?.crypto?.randomUUID();
+    const uuid = !randUUID ? new Date().valueOf().toString() : randUUID.replaceAll('-', '_');
+    const extraSuffixParsed = (extraSuffix?.length > 0) ? ('_' + extraSuffix) : ('');
+
+    return `${metadataName}${extraSuffixParsed}_${uuid}`;
+}
+
+/**
  * @param {string|boolean|number} value
- * @param {'string'|'boolean'|'number'|string?} [force]
+ * @param {'string'|'boolean'|'number'} [force]
  * @returns {string|boolean|number}
  */
 function parseValue(value, force) {
@@ -163,8 +204,7 @@ function parseValue(value, force) {
     if (force === 'number') return Number(value);
     if (force === 'boolean') return value === 'true';
 
-    if (value === 'true' || value === 'false')
-        return value === 'true';
+    if (value === 'true' || value === 'false') return value === 'true';
 
     const number = Number(value);
 
@@ -173,8 +213,163 @@ function parseValue(value, force) {
     return String(value);
 }
 
+/**
+ * @param {string} [filter]
+ * @returns {Promise<string[]>}
+ */
+async function getWorldInfoList(filter) {
+    try {
+        const result = await fetch('/api/settings/get', {
+            method: 'POST',
+            headers: getRequestHeaders(),
+            body: JSON.stringify({}),
+        });
+
+        const worldNames = [];
+
+        if (result.ok) {
+            const data = await result.json();
+            const dataNames = data.world_names?.length ? data.world_names : [];
+
+            worldNames.push(...dataNames);
+        }
+
+        return worldNames.filter(name => name !== filter);
+    } catch (err) {
+        WiBulkMover.error(err);
+        return [];
+    }
+}
+
+/**
+ * @typedef {Object} LorebookDictionaries
+ * @property {Object|undefined} selectedWorld
+ * @property {string} selectedWorldName
+ * @property {string[]} worldNames
+ *
+ * @returns {Promise<LorebookDictionaries>}
+ */
+async function getLorebooks() {
+    const selectedWorldName = String($('#world_editor_select').find(':selected').text());
+    const worldIsSelected = $('#world_editor_select').val() !== '';
+    const worldNames = await getWorldInfoList(selectedWorldName);
+    const wiData = {
+        selectedWorld: null,
+        selectedWorldName: '',
+        worldNames
+    };
+
+    if (worldIsSelected) {
+        wiData.selectedWorld = await loadWorldInfo(selectedWorldName);
+        wiData.selectedWorldName = selectedWorldName;
+    }
+
+    WiBulkMover.log(wiData);
+
+    return wiData;
+}
+
+/**
+ * @param {CursorEventData<HTMLElement>} e
+ */
+function onClickEntryRowHeader(e) {
+    if (e.ctrlKey) return;
+
+    const $entryRow = $(e.currentTarget);
+    const $clickedTarget = $(e.target);
+
+    if (
+        $clickedTarget.hasClass('inline-drawer-toggle') ||
+        $clickedTarget.is(':input')
+    ) return;
+
+    const selectedState = $entryRow.find('input[name="entry-selected"]').prop('checked');
+    $entryRow.find('input[name="entry-selected"]').prop('checked', !selectedState);
+}
+
+/**
+ * @param {EventData<HTMLDivElement>} [e]
+ */
+async function openTransferPopup(e) {
+    const $popup = await HTML_TEMPLATES.get('popup', {clone: true});
+    const $popupEntryRow = await HTML_TEMPLATES.get('popupEntryRow', {clone: true});
+    const $targetSelector = $popup.find('select[name="target-lorebook"]');
+    const $entriesList = $popup.find('.entries-list');
+
+    const {selectedWorld, selectedWorldName, worldNames} = await getLorebooks();
+
+    if (!selectedWorld) return toastr.warning(t`Open a lorebook first`, extensionName);
+
+    const {entries} = selectedWorld;
+
+    for (const worldName of worldNames) {
+        $('<option>', {text: worldName, value: worldName}).appendTo($targetSelector);
+    }
+
+    const sortedEntries = Object
+        .values(entries)
+        .sort((entryA, entryB) => entryA.displayIndex - entryB.displayIndex);
+
+    for (const entry of sortedEntries) {
+        const $entryRow = $popupEntryRow.clone();
+
+        $entryRow.data('uid', entry.uid);
+
+        $entryRow.find('.entry-comment')
+            .text(entry.comment || '--No title--');
+
+        $entryRow.find('.entry-uid')
+            .text(entry.uid);
+
+        $entryRow.find('.entry-content')
+            .text(entry.content || '--Empty--');
+
+        $entryRow.find('input[name="entry-selected"]')
+            .attr('value', String(entry.uid));
+
+        $entriesList.append($entryRow);
+    }
+
+    $popup.find('.selected-world-name').text(selectedWorldName);
+    $popup.on('click', '.entry-item .inline-drawer-header', /** @type {any} */ (onClickEntryRowHeader));
+
+    const popupOptions = {
+        cancelButton: t`Close`,
+        okButton: false,
+        allowVerticalScrolling: true,
+        allowEscapeClose: true,
+        leftAlign: true,
+        transparent:false,
+    };
+
+    popupOptions[isMobile() ? 'wider' : 'wide'] = true;
+
+    const userChoice = await callGenericPopup($popup, POPUP_TYPE.TEXT, '', {
+        ...popupOptions,
+        onClose: function() {
+            $popup.off('click');
+        }
+    });
+
+    if (typeof userChoice !== 'number') return;
+
+    WiBulkMover.log({userChoice, option: popupResults[userChoice]});
+}
+
 /** Adds extension buttons and their listeners. */
 function initFeatures() {
+    const buttonId = `${htmlSuffix}-open-transfer-popup`;
+    const button = createElement('div', {
+        class: 'menu_button fa-solid fa-boxes-packing',
+        attr: {title: 'Bulk transfer lorebook entries', id: buttonId},
+        data: {i18n: '[title]Bulk transfer lorebook entries'}
+    });
+
+    $('#world_popup_new').before(button);
+
+    const $button = $(`#${buttonId}`);
+
+    $button.on('click', /** @type {any} */ (openTransferPopup));
 }
 
 /**
@@ -277,12 +472,12 @@ async function loadSettingsMenu() {
 
 eventSource.once(eventTypes.APP_INITIALIZED, async function() {
     if (!context().extensionSettings[extensionFullName]) {
-        context().extensionSettings[extensionFullName] = structuredClone(defaultSettings);
+        context().extensionSettings[extensionFullName] = lodash.cloneDeep(defaultSettings);
     }
 
     for (const key of Object.keys(defaultSettings)) {
         if (context().extensionSettings[extensionFullName][key] === undefined) {
-            context().extensionSettings[extensionFullName][key] = defaultSettings[key];
+            context().extensionSettings[extensionFullName][key] = lodash.cloneDeep(defaultSettings[key]);
         }
     }
 
