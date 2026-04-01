@@ -1,5 +1,5 @@
-# SillyTavern - WI Bulk Mover
-This is a simple extension that allows you to clone WI entries from one lorebook into another.
+# WI Bulk Mover
+A simple extension that allows you to move multiple WI entries from one lorebook into another.
 
 ## Installation
 - ST `+=+1.12.4` required
