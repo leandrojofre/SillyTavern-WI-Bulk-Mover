@@ -223,3 +223,14 @@
         }
     }
 }
+
+/* Get gnomed bozo edition */
+.wi-bulk-mover-custom-css.get-gnomed-bozo{
+    position: absolute;
+    z-index: 8008;
+    max-width: 50vw;
+    max-height: 50vh;
+    padding: 0;
+    margin: 0;
+    transition: top 0.5s ease, opacity 1s ease;
+}

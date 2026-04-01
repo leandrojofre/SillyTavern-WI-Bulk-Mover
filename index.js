@@ -1,4 +1,12 @@
-import { moveWorldInfoEntry, deleteWorldInfoEntry } from "../../../world-info.js";
+import {moveWorldInfoEntry, deleteWorldInfoEntry} from '../../../world-info.js';
+import {initTheChosenGnomer, summonTheChosenGnomer} from './source/js/getGnomedBozo.js';
+
+export {
+    t,
+    generateUUID,
+    extensionName,
+    extensionFolderPath
+};
 
 // * MARK:Types Definitions
 
@@ -30,26 +38,18 @@ const context = () => SillyTavern.getContext();
 
 const {
     t,
-    saveChat,
-    substituteParams,
-    setExtensionPrompt,
-    scrollChatToBottom,
     callGenericPopup,
-    getThumbnailUrl,
     getRequestHeaders,
     isMobile,
-    Popup,
     POPUP_TYPE,
     extensionSettings: extension_settings,
     saveSettingsDebounced,
-    powerUserSettings,
     eventSource,
     eventTypes,
     // World Info
     loadWorldInfo,
     saveWorldInfo,
     reloadWorldInfoEditor,
-    updateWorldInfoList,
 } = context();
 
 const {
@@ -95,6 +95,10 @@ const extensionSettings = extension_settings[extensionFullName];
 /** @type {ExtensionSettings} */
 const defaultSettings = {
     debug: false
+};
+
+const defToastrOptions = {
+    preventDuplicates: true
 };
 
 const HTML_TEMPLATES = {
@@ -487,17 +491,18 @@ async function buildPopupEntryList(container, entries) {
  * @param {EventData<HTMLDivElement>} [e]
  */
 async function openTransferPopup(e) {
+    summonTheChosenGnomer();
     const $popup = await HTML_TEMPLATES.get('popup', {clone: true});
     const $targetSelector = $popup.find('select[name="target-lorebook"]');
     const $entriesList = $popup.find('.entries-list');
 
     const {selectedWorld, selectedWorldName, worldNames} = await getLorebooks();
 
-    if (!selectedWorld) return toastr.warning(t`Open a lorebook first.`, extensionName);
+    if (!selectedWorld) return toastr.warning(t`Open a lorebook first.`, extensionName, defToastrOptions);
 
     const {entries} = selectedWorld;
 
-    if (!Object.values(entries)?.length) return toastr.warning(t`The selected lorebook has no entries.`, extensionName);
+    if (!Object.values(entries)?.length) return toastr.warning(t`The selected lorebook has no entries.`, extensionName, defToastrOptions);
 
     for (const worldName of worldNames) {
         $('<option>', {text: worldName, value: worldName}).appendTo($targetSelector);
@@ -672,4 +677,5 @@ eventSource.once(eventTypes.APP_INITIALIZED, async function() {
 
     await loadSettingsMenu();
     initFeatures();
+    initTheChosenGnomer();
 });
