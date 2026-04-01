@@ -2,7 +2,7 @@
 A simple extension that allows you to move multiple WI entries from one lorebook into another.
 
 ## Installation
-- ST `+=+1.12.4` required
+- ST `+=1.12.4` required
 
 Install the extension using this link: `https://github.com/leandrojofre/SillyTavern-WI-Bulk-Mover.git`
 
