@@ -41,6 +41,7 @@ const {
     callGenericPopup,
     getRequestHeaders,
     isMobile,
+    Popup,
     POPUP_TYPE,
     extensionSettings: extension_settings,
     saveSettingsDebounced,
@@ -296,6 +297,23 @@ function onClickEntryRowHeader(e) {
 }
 
 /**
+ * @param {string} actionLabel - Are you sure want to...
+ * @returns {Promise<boolean>}
+ */
+async function popupConfirmAction(actionLabel = 'continue') {
+    const result = await Popup.show.confirm(
+        t`WARNING`,
+        t`Are you sure want to ${actionLabel}?`,
+        {
+            okButton: t`Confirm`,
+            cancelButton: t`Cancel`
+        }
+    );
+
+    return result === 1;
+}
+
+/**
  * @param {string} source
  * @param {string} target
  * @param {number[]} uids
@@ -348,6 +366,9 @@ async function deleteWorldInfoEntries(source, uids) {
     if (isEditingEntries) return toastr.error(t`Wait until the current bulk moving finishes`, extensionName, {
         toastClass: 'toast'
     });
+
+    if (!await popupConfirmAction('delete the entries'))
+        return toastr.info(t`Deletion of entries cancelled.`, extensionName);
 
     const worldInfoData = await loadWorldInfo(source);
 
