@@ -11,6 +11,10 @@
     "strictNullChecks": false,
     "strictPropertyInitialization": false,
     "useUnknownInCatchVariables": false,
-    "ignoreDeprecations": "6.0"
+    "ignoreDeprecations": "6.0",
+  },
+  "typeAcquisition": {
+    "enable": true,
+    "include": ["toastr", "jquery"]
   }
 }
