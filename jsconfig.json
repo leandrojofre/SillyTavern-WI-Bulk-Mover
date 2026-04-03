@@ -1,20 +1,22 @@
 {
   "compilerOptions": {
     "checkJs": true,
-    "strict": false,
-    "alwaysStrict": false,
-    "noImplicitAny": false,
-    "noImplicitThis": false,
-    "strictBindCallApply": false,
-    "strictBuiltinIteratorReturn": false,
-    "strictFunctionTypes": false,
-    "strictNullChecks": false,
-    "strictPropertyInitialization": false,
-    "useUnknownInCatchVariables": false,
-    "ignoreDeprecations": "6.0",
+    "allowJs": true,
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "baseUrl": "./"
   },
   "typeAcquisition": {
     "enable": true,
-    "include": ["toastr", "jquery"]
-  }
+    "include": [
+      "jquery",
+      "toastr"
+    ]
+  },
+  "include": [
+    "globals.d.ts",
+    "source/**/*.js",
+    "index.js"
+  ]
 }

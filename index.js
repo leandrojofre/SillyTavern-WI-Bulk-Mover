@@ -8,30 +8,6 @@ export {
     extensionFolderPath
 };
 
-// * MARK:Types Definitions
-
-/**
- * @typedef {Object} WIBulkMoverInterface
- * @property {(...mess: any[]) => void} log
- * @property {(...mess: any[]) => void} debug
- * @property {(...mess: any[]) => void} error
- */
-
-/**
- * @typedef {Object} ExtensionSettings
- * @property {boolean} debug
- */
-
-/**
- * @template T
- * @typedef {Event & {data: Object; currentTarget: T;}} EventData
- */
-
-/**
- * @template T
- * @typedef {MouseEvent & {data: Object; currentTarget: T;}} CursorEventData
- */
-
 // * MARK:ST Context
 
 const context = () => SillyTavern.getContext();
@@ -81,7 +57,7 @@ const popupActions = Object.freeze({
     selectAll: 'select-all'
 });
 
-const extensionName = "WI-Bulk-Mover";
+const extensionName = 'WI-Bulk-Mover';
 const extensionFullName = 'SillyTavern-WI-Bulk-Mover';
 const metadataName = extensionName.toLowerCase().replaceAll('-', '_');
 const htmlSuffix = extensionName.toLowerCase();
@@ -513,6 +489,7 @@ async function buildPopupEntryList(container, entries) {
  */
 async function openTransferPopup(e) {
     summonTheChosenGnomer();
+
     const $popup = await HTML_TEMPLATES.get('popup', {clone: true});
     const $targetSelector = $popup.find('select[name="target-lorebook"]');
     const $entriesList = $popup.find('.entries-list');
@@ -589,7 +566,6 @@ function initFeatures() {
 
 /**
  * MARK:Interface
- * @type {WIBulkMoverInterface}
  */
 globalThis.WiBulkMover = {
     log,

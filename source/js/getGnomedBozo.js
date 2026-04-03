@@ -57,7 +57,7 @@ function randomWithBias(min = 0, max = 100, bias = 1) {
 }
 
 async function summonTheChosenGnomer() {
-    const userWorthinessBarrier = 69 / 3;
+    const userWorthinessBarrier = 6969;
     const isThyUserWorthyOfDaGnome = randomWithBias(1, userWorthinessBarrier);
 
     if (isThyUserWorthyOfDaGnome !== userWorthinessBarrier) return;
@@ -71,7 +71,7 @@ async function summonTheChosenGnomer() {
 
     $(gnomeDaId)
         .off('load error')
-        .one('load', async function() {
+        .one('load', function() {
             const imageWidth = $(gnomeDaId).outerWidth();
             const imageHeight = $(gnomeDaId).outerHeight();
             const inBoundaryPosition = Math.max(randomWithBias(0, screenWidth) - imageWidth, 0);
@@ -91,9 +91,9 @@ async function summonTheChosenGnomer() {
                 .animate(animations.moveTop, 500)
                 .promise()
                 .then(function() {
-                    if (isReverb) {
-                        audioCtx.resume().then(() => playBuffer({ volume: 0.7 }));
+                    audioCtx.resume().then(() => playBuffer({ volume: 0.7 }));
 
+                    if (isReverb) {
                         $(gnomeDaId)
                         .animate(animations.transparent, 1000)
                         .delay(1000)
@@ -101,8 +101,6 @@ async function summonTheChosenGnomer() {
                         .delay(500)
                         .animate(animations.opaque);
                     } else {
-                        audioCtx.resume().then(() => playBuffer({ volume: 0.7 }));
-
                         $(gnomeDaId)
                         .delay(500)
                         .animate(animations.start, 500)
