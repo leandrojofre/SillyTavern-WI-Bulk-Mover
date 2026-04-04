@@ -37,24 +37,24 @@ const {
 
 /**
  * @readonly
- * @enum {number}
+ * @enum {Record<string, number>}
  */
 const debounceTimeout = Object.freeze({
     MICRO: 50,
     SHORT: 300,
     MED: 500,
-    LONG: 700
+    LONG: 700,
 });
 
 /**
  * @readonly
- * @enum {string[]}
+ * @enum {Record<string, string>}
  */
 const popupActions = Object.freeze({
     copy: 'copy',
     transfer: 'transfer',
     delete: 'delete',
-    selectAll: 'select-all'
+    selectAll: 'select-all',
 });
 
 const extensionName = 'WI-Bulk-Mover';
@@ -87,13 +87,13 @@ const HTML_TEMPLATES = {
      * @param {HTMLTemplateGetOptions} [options]
      * @returns {Promise<JQuery<HTMLElement>>}
      */
-    get: async function(fileName = 'settings', {clone = false} = {}) {
+    get: async function (fileName = 'settings', {clone = false} = {}) {
 		if (!HTML_TEMPLATES[fileName]) {
             await $.get(`${extensionFolderPath}/source/templates/${fileName}.html`)
-                .done(function(response) {
+                .done(function (response) {
                     HTML_TEMPLATES[fileName] = $(response);
                 })
-                .fail(function(jqXHR, textStatus, errorThrown) {
+                .fail(function (jqXHR, textStatus, errorThrown) {
                     WiBulkMover.error({jqXHR, textStatus, errorThrown});
                 });
         }
@@ -301,7 +301,7 @@ async function transferWorldInfoEntries(source, target, uids, deleteOriginal = f
     });
 
     const $toastr = toastr.info(
-        t`${deleteOriginal ? 'Transferring' : 'Copying'} entries to the lorebook "${target}", wait until the finish confirmation message.`,
+        t`${deleteOriginal ? 'Transferring' : 'Copying'} entries to the lorebook "${target}"...`,
         extensionName,
         {
             timeOut: 0,
@@ -339,7 +339,7 @@ async function transferWorldInfoEntries(source, target, uids, deleteOriginal = f
  * @param {number[]} uids
  */
 async function deleteWorldInfoEntries(source, uids) {
-    if (isEditingEntries) return toastr.error(t`Wait until the current bulk moving finishes`, extensionName, {
+    if (isEditingEntries) return toastr.error(t`Wait until the current bulk moving action finishes.`, extensionName, {
         toastClass: 'toast'
     });
 
@@ -351,7 +351,7 @@ async function deleteWorldInfoEntries(source, uids) {
     if (!worldInfoData) return;
 
     const $toastr = toastr.info(
-        t`Deleting entries from the lorebook "${source}", wait until the finish confirmation message.`,
+        t`Deleting entries from the lorebook "${source}"...`,
         extensionName,
         {
             timeOut: 0,
@@ -364,13 +364,14 @@ async function deleteWorldInfoEntries(source, uids) {
 
     try {
         const uniqueUids = new Set(uids).values().toArray();
+        const safeWIData = lodash.cloneDeep(worldInfoData);
 
         for (const uid of uniqueUids) {
             if (isNaN(uid)) continue;
-            await deleteWorldInfoEntry(worldInfoData, uid, {silent: true});
+            await deleteWorldInfoEntry(safeWIData, uid, {silent: true});
         }
 
-        await saveWorldInfo(source, lodash.cloneDeep(worldInfoData), true);
+        await saveWorldInfo(source, safeWIData, true);
         reloadWorldInfoEditor(source, false);
     } catch (error) {
         WiBulkMover.error(error);
@@ -384,7 +385,7 @@ async function deleteWorldInfoEntries(source, uids) {
  * @param {CursorEventData<HTMLButtonElement>} e
  */
 async function onClickPopupAction(e) {
-    if (isEditingEntries) return toastr.error(t`Wait until the current bulk moving finishes`, extensionName, {
+    if (isEditingEntries) return toastr.error(t`Wait until the current bulk moving action finishes.`, extensionName, {
         toastClass: 'toast'
     });
 
@@ -401,7 +402,7 @@ async function onClickPopupAction(e) {
         const $entries = $popup.find('input[name="entry-selected"]');
         let allChecked = true;
 
-        $entries.each(function(i, entry) {
+        $entries.each(function (i, entry) {
             const isChecked = $(entry).is(':checked');
 
             if (!isChecked) {
@@ -509,35 +510,37 @@ async function openTransferPopup(e) {
     await buildPopupEntryList($entriesList, entries);
 
     $popup.find('.selected-world-name').text(selectedWorldName);
-    $popup.on('click', '.entry-item .inline-drawer-header', /** @type {any} */ (onClickEntryRowHeader));
 
-    $popup.on('click', '.transfer-popup-action', {selectedWorldName}, async function(e) {
-        const $actionToolbar = $popup.find('.action-toolbar');
-
-        try {
-            $actionToolbar.toggleClass('disabled', true);
-            // @ts-ignore
-            await onClickPopupAction(e);
-        } catch (error) {
-            WiBulkMover.error(error);
-        } finally {
-            $actionToolbar.toggleClass('disabled', false);
-        }
-    });
-
-    $popup.on('wi-bulk-mover:popup:update-list', async function() {
-        const {entries} = await loadWorldInfo(selectedWorldName);
-        await buildPopupEntryList($entriesList, entries);
-    });
-
+    /** @type {PopupOptions} */
     const popupOptions = {
         cancelButton: t`Close`,
         okButton: false,
         allowVerticalScrolling: true,
         allowEscapeClose: true,
         leftAlign: true,
-        transparent:false,
-        onClose: function() {
+        transparent: false,
+        onOpen: async function () {
+            $popup.on('click', '.entry-item .inline-drawer-header', /** @type {any} */ (onClickEntryRowHeader));
+            $popup.on('click', '.transfer-popup-action', {selectedWorldName}, async function (e) {
+                const $actionToolbar = $popup.find('.action-toolbar');
+
+                try {
+                    $actionToolbar.toggleClass('disabled', true);
+                    // @ts-ignore
+                    await onClickPopupAction(e);
+                } catch (error) {
+                    WiBulkMover.error(error);
+                } finally {
+                    $actionToolbar.toggleClass('disabled', false);
+                }
+            });
+
+            $popup.on('wi-bulk-mover:popup:update-list', async function () {
+                const {entries} = await loadWorldInfo(selectedWorldName);
+                await buildPopupEntryList($entriesList, entries);
+            });
+        },
+        onClose: function () {
             $popup.off('click');
             $popup.off('wi-bulk-mover:popup:update-list');
         },
@@ -661,7 +664,7 @@ async function loadSettingsMenu() {
 
 // * MARK:Initialize Extension
 
-eventSource.once(eventTypes.APP_INITIALIZED, async function() {
+eventSource.once(eventTypes.APP_INITIALIZED, async function () {
     if (!context().extensionSettings[extensionFullName]) {
         context().extensionSettings[extensionFullName] = lodash.cloneDeep(defaultSettings);
     }

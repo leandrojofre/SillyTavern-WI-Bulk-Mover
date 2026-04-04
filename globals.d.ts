@@ -1,8 +1,12 @@
 /// <reference path="../../../../global.d.ts" />
 
+import {t} from "../../../i18n";
+
 export {};
 
 declare global {
+    type PopupOptions = import('../../../popup.js').PopupOptions;
+
     type WIBulkMoverInterface = {
         log: (...mess: any[]) => void;
         debug: (...mess: any[]) => void;
