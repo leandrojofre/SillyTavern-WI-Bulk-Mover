@@ -1,6 +1,8 @@
 import {moveWorldInfoEntry, deleteWorldInfoEntry} from '../../../world-info.js';
 import {initTheChosenGnomer, summonTheChosenGnomer} from './source/js/getGnomedBozo.js';
 
+/// <reference path="./globals.d.ts" />
+
 export {
     t,
     generateUUID,
