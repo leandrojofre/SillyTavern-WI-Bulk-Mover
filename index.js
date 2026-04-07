@@ -7,7 +7,8 @@ export {
     t,
     generateUUID,
     extensionName,
-    extensionFolderPath
+    extensionFolderPath,
+    isMobile
 };
 
 // * MARK:ST Context
