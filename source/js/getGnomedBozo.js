@@ -1,4 +1,4 @@
-import {generateUUID, extensionFolderPath} from '../../index.js';
+import {generateUUID, extensionFolderPath, isMobile} from '../../index.js';
 
 export {initTheChosenGnomer, summonTheChosenGnomer};
 
@@ -14,9 +14,9 @@ const daGnomesSounds = Object.freeze([
     'wooh-reverb',
 ]);
 
-let gnomeDaId;
-const screenWidth = $(window).width();
-const screenHeight = $(window).height();
+let $gnomeDaImage;
+const screenWidth = () => $(window).width();
+const screenHeight = () => $(window).height();
 
 // decode once, play many times with low latency
 const audioCtx = new AudioContext();
@@ -57,7 +57,7 @@ function randomWithBias(min = 0, max = 100, bias = 1) {
 }
 
 async function summonTheChosenGnomer() {
-    const userWorthinessBarrier = 69 / 3;
+    const userWorthinessBarrier = 10;
     const isThyUserWorthyOfDaGnome = randomWithBias(1, userWorthinessBarrier);
 
     if (isThyUserWorthyOfDaGnome !== userWorthinessBarrier) return;
@@ -69,41 +69,39 @@ async function summonTheChosenGnomer() {
 
     await preloadBuffer(daChosenGnomeAudioSrc).catch(WiBulkMover.error);
 
-    $(gnomeDaId)
+    $gnomeDaImage
         .off('load error')
-        .one('load', async function() {
-            const imageWidth = $(gnomeDaId).outerWidth();
-            const imageHeight = $(gnomeDaId).outerHeight();
-            const inBoundaryPosition = Math.max(randomWithBias(0, screenWidth) - imageWidth, 0);
+        .one('load', function() {
+            const imageWidth = $gnomeDaImage.outerWidth();
+            const imageHeight = $gnomeDaImage.outerHeight();
+            const inBoundaryPosition = Math.max(randomWithBias(0, screenWidth()) - imageWidth, 0);
             const isReverb = daGnomesSounds[daChosenGnomeAudioId].includes('reverb');
 
             const animations = {
-                start: {left: inBoundaryPosition, top: screenHeight},
-                moveTop: {top: screenHeight - imageHeight},
+                start: {left: inBoundaryPosition, top: screenHeight()},
+                moveTop: {top: screenHeight() - imageHeight},
                 transparent: {opacity: 0},
                 opaque: {opacity: 1}
             };
 
             try {
-                $(gnomeDaId)
+                $gnomeDaImage
                 .stop(true, true)
                 .css(animations.start)
                 .animate(animations.moveTop, 500)
                 .promise()
                 .then(function() {
-                    if (isReverb) {
-                        audioCtx.resume().then(() => playBuffer({ volume: 0.7 }));
+                    audioCtx.resume().then(() => playBuffer({ volume: 0.7 }));
 
-                        $(gnomeDaId)
+                    if (isReverb) {
+                        $gnomeDaImage
                         .animate(animations.transparent, 1000)
                         .delay(1000)
                         .animate(animations.start, 500)
                         .delay(500)
                         .animate(animations.opaque);
                     } else {
-                        audioCtx.resume().then(() => playBuffer({ volume: 0.7 }));
-
-                        $(gnomeDaId)
+                        $gnomeDaImage
                         .delay(500)
                         .animate(animations.start, 500)
                         .delay(500)
@@ -118,16 +116,21 @@ async function summonTheChosenGnomer() {
             WiBulkMover.error('Could not load gnomed animation or image.');
         });
 
-    if ($(gnomeDaId).css('top') === `${screenHeight}px`) {
-        $(gnomeDaId).prop('src', new URL(daChosenGnomeSrc, window.location.origin).href);
+    if ($gnomeDaImage.css('top') === `${screenHeight()}px`) {
+        $gnomeDaImage.prop('src', new URL(daChosenGnomeSrc, window.location.origin).href);
     }
 }
 
 function initTheChosenGnomer() {
-    gnomeDaId = `#${generateUUID('gnomed_bozo')}`;
+    const gnomeDaId = `#${generateUUID('gnomed_bozo')}`;
 
-    const $gnomeDaImage = $('<img>', {id: gnomeDaId.replace(/^#/, ''), class: 'wi-bulk-mover-custom-css get-gnomed-bozo', alt: 'Get Gnomed Bozo'});
-
+    $gnomeDaImage = $('<img>', {id: gnomeDaId.replace(/^#/, ''), class: 'wi-bulk-mover-custom-css get-gnomed-bozo', alt: 'Get Gnomed Bozo'});
     $gnomeDaImage.appendTo('body');
-    $gnomeDaImage.css('top', screenHeight);
+    $gnomeDaImage.css('top', screenHeight());
+
+    $(window).on('resize', function () {
+        if (isMobile()) return;
+
+        $gnomeDaImage.css('top', screenHeight());
+    });
 }

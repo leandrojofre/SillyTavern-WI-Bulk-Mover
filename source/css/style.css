@@ -3,6 +3,10 @@
     --wi-bulk-mover-border-color: var(--SmartThemeBorderColor);
     --wi-bulk-mover-text-muted-color: color-mix(in srgb, currentColor 75%, black);
 
+    small, span {
+        line-height: normal;
+    }
+
     .d-none {
         display: none !important;
     }
@@ -23,13 +27,12 @@
 
     .flex-container {
         display: flex;
-        align-items: center;
+        gap: 5px;
         flex-wrap: nowrap;
     }
 
     .flex-column {
         flex-direction: column;
-	    align-items: flex-start;
     }
 
 	.gap-0 {
@@ -203,7 +206,7 @@
         font-style: italic;
     }
 
-	.entries-list .inline-drawer-header {
+	.inline-drawer-header {
 		cursor: auto;
         padding: 1px;
 	}
