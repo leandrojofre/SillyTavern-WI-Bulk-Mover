@@ -1,7 +1,18 @@
 import {moveWorldInfoEntry, deleteWorldInfoEntry} from '../../../world-info.js';
 import {initTheChosenGnomer, summonTheChosenGnomer} from './source/js/getGnomedBozo.js';
 
-/// <reference path="./globals.d.ts" />
+/**
+ * @template T
+ * @typedef {WiBulkMover.CursorEventData<T>} CursorEventData
+ */
+
+/**
+ * @template T
+ * @typedef {WiBulkMover.EventData<T>} EventData
+ */
+
+/** @typedef {WiBulkMover.ExtensionSettings} ExtensionSettings */
+/** @typedef {WiBulkMover.PopupOptions} PopupOptions */
 
 export {
     t,
@@ -492,7 +503,7 @@ async function buildPopupEntryList(container, entries) {
  * @param {EventData<HTMLDivElement>} [e]
  */
 async function openTransferPopup(e) {
-    summonTheChosenGnomer();
+    // summonTheChosenGnomer();
 
     const $popup = await HTML_TEMPLATES.get('popup', {clone: true});
     const $targetSelector = $popup.find('select[name="target-lorebook"]');
@@ -680,5 +691,5 @@ eventSource.once(eventTypes.APP_INITIALIZED, async function () {
 
     await loadSettingsMenu();
     initFeatures();
-    initTheChosenGnomer();
+    // initTheChosenGnomer();
 });
