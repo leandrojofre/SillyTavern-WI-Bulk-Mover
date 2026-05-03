@@ -1,5 +1,5 @@
-import {moveWorldInfoEntry, deleteWorldInfoEntry} from '../../../world-info.js';
-import {initTheChosenGnomer, summonTheChosenGnomer} from './source/js/getGnomedBozo.js';
+import {moveWorldInfoEntry, deleteWorldInfoEntry, newWorldInfoEntryDefinition, world_info_logic, world_info_position} from '../../../world-info.js';
+import {extension_prompt_roles} from '../../../../script.js';
 
 /**
  * @template T
@@ -503,8 +503,6 @@ async function buildPopupEntryList(container, entries) {
  * @param {EventData<HTMLDivElement>} [e]
  */
 async function openTransferPopup(e) {
-    // summonTheChosenGnomer();
-
     const $popup = await HTML_TEMPLATES.get('popup', {clone: true});
     const $targetSelector = $popup.find('select[name="target-lorebook"]');
     const $entriesList = $popup.find('.entries-list');
@@ -663,7 +661,6 @@ function displaySettings() {
 async function loadSettingsMenu() {
     const settingsHtml = await HTML_TEMPLATES.get('settings');
 
-    // extensions_settings2 is an alternative
     $('#extensions_settings').append(settingsHtml);
 
     $(`#${htmlSuffix}-debug`).on('input', settingsBooleanButton);
