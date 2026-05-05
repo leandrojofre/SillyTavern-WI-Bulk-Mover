@@ -75,6 +75,6 @@ jobs:
           release_name: WI-Bulk-Mover v${{ steps.determine_version.outputs.new_version }}
           body: |
            - **PR Title**: [#${{ steps.pr_details.outputs.number }}] ${{ steps.pr_details.outputs.title }}
-           - **Merged by**: @${{ steps.pr_details.outputs.user }}
+           - **Created by**: @${{ steps.pr_details.outputs.user }}
           draft: false
           prerelease: false

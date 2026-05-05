@@ -20,4 +20,8 @@ declare namespace WiBulkMover {
         data: Record<string, any>;
         currentTarget: T;
     };
+
+    type HTMLTemplateGetOptions = {
+        clone?: boolean;
+    };
 }

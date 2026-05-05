@@ -13,6 +13,7 @@ import {extension_prompt_roles} from '../../../../script.js';
 
 /** @typedef {WiBulkMover.ExtensionSettings} ExtensionSettings */
 /** @typedef {WiBulkMover.PopupOptions} PopupOptions */
+/** @typedef {WiBulkMover.HTMLTemplateGetOptions} HTMLTemplateGetOptions */
 
 export {
     t,
@@ -94,35 +95,49 @@ const defToastrOptions = {
 
 const HTML_TEMPLATES = {
 	/**
-     * @typedef {Object} HTMLTemplateGetOptions
-     * @property {boolean} [clone]
-     *
      * @param {string} [fileName]
      * @param {HTMLTemplateGetOptions} [options]
      * @returns {Promise<JQuery<HTMLElement>>}
      */
-    get: async function (fileName = 'settings', {clone = false} = {}) {
+    get: async function(fileName = 'settings', {clone = false} = {}) {
+		const extensionFolderPath = HTML_TEMPLATES.extensionFolderPath;
+
 		if (!HTML_TEMPLATES[fileName]) {
-            await $.get(`${extensionFolderPath}/source/templates/${fileName}.html`)
-                .done(function (response) {
-                    HTML_TEMPLATES[fileName] = $(response);
-                })
-                .fail(function (jqXHR, textStatus, errorThrown) {
-                    WiBulkMover.error({jqXHR, textStatus, errorThrown});
-                });
+			try {
+				await $.get(`${extensionFolderPath}/source/templates/${fileName}.html`)
+					.done(function(response) {
+						HTML_TEMPLATES[fileName] = $(response);
+					})
+			} catch (err) {
+				const is404 = err?.status === 404;
+
+				error('Template rendering error.', {err});
+
+				if (is404 && !HTML_TEMPLATES.didFallbackFetch) {
+					HTML_TEMPLATES.extensionFolderPath = `${HTML_TEMPLATES.extensionFolderPath}.git`;
+					HTML_TEMPLATES.didFallbackFetch = true;
+
+					error(`Failed to fetch ${fileName}.html, attempting fallback path...`, {err, HTML_TEMPLATES: structuredClone({
+						extensionFolderPath: HTML_TEMPLATES.extensionFolderPath,
+						didFallbackFetch: HTML_TEMPLATES.didFallbackFetch,
+					})});
+
+					return await HTML_TEMPLATES.get(fileName, {clone});
+				}
+			}
         }
 
         const $file = HTML_TEMPLATES[fileName];
 
         if (!$file) {
-            toastr.warning(t`HTML template "${fileName}" could not be loaded.`, extensionName);
+            toastr.warning(t`HTML template could not be loaded`, extensionName);
             return $();
         }
 
-		return clone ?
-            $file.clone() :
-            $file;
-    }
+		return clone ? $file.clone() : $file;
+    },
+	didFallbackFetch: false,
+	extensionFolderPath,
 };
 
 // * MARK:Debugs methods
